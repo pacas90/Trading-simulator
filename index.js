@@ -118,15 +118,20 @@ function updateStocksTotalValue() {
     stocksRows.forEach(row => {
     if (row.classList.contains('stocks-row-active')) {
         var amount = user.getStockAmount(user.getStockIndexByName(row.getAttribute('name')));
-        ownedStocksAmount.innerHTML = 
-            `You have ${amount.toFixed(5)}
-             (${(amount * broker.findStockByName(row.getAttribute('name')).price).toFixed(2)} 
-             <span style=color:var(--text-accent);margin:0;>EUR</span>)`;
+        if (amount != undefined) {
+            ownedStocksAmount.innerHTML = 
+                `You have ${amount.toFixed(5)}
+                (${(amount * broker.findStockByName(row.getAttribute('name')).price).toFixed(2)} 
+                <span style=color:var(--text-accent);margin:0;>EUR</span>)`;
+        }
+        else {
+            ownedStocksAmount.innerHTML = '';
+        }
     }
     }); 
 }
 
-
+var contains = false;
 stocksRows.forEach(row => {
     if (!row.isEqualNode(stocksRows[0])) {
         row.addEventListener('click', () => {
@@ -137,6 +142,7 @@ stocksRows.forEach(row => {
                 disableInputs(true);
             })
             row.classList.toggle('stocks-row-active');
+            //disableInputs(false);
             if (row.classList.contains('stocks-row-active')) {
                 stocksBuyText1.textContent = `${row.getAttribute('name')}`;
                 stocksSellText1.textContent = `${row.getAttribute('name')}`; 
@@ -145,9 +151,21 @@ stocksRows.forEach(row => {
                     `You have ${amount.toFixed(5)}
                      (${(amount * broker.findStockByName(row.getAttribute('name')).price).toFixed(2)} 
                      <span style=color:var(--text-accent);margin:0;>EUR</span>)`;*/
-                     updateStocksTotalValue();
+                updateStocksTotalValue();
                 disableInputs(false);
             }
+            
+            // stocksRows.forEach(row3 => {
+            //     if (row3.classList.contains('stocks-row-active')) {
+            //         contains = true;
+            //         return;
+            //     }
+            //     else {
+            //         contains = false;
+            //     }
+            // });
+            // if (contains) disableInputs(false)
+            // else disableInputs(true);
         });
     }
 });
