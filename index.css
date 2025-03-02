@@ -1,0 +1,433 @@
+body {
+    margin: 0;
+    padding: 0; 
+}
+:root {
+    --bg-black: #262626;
+    --bg-dark1: #313131;
+    --bg-dark2: #3a3a3a;
+
+    --bg-active: #534450;
+    --button-active: #613658;
+    --button-active2: #51254b;
+
+    --text-primary: #ffffff;
+    --text-primary2: #e1e1e1;
+    --text-accent: #ea9ce2;
+
+    --accent-dark: #60435d;
+
+    --text-green: #87ff83;
+
+    --overlay: #ffffff28;
+
+    color: var(--text-primary);
+    background-color: var(--bg-black);
+
+    font-family: "Roboto", serif;
+    font-optical-sizing: auto;
+    font-weight: 300;
+    font-style: normal;
+}
+.material-symbols-outlined {
+    color: var(--text-primary2);
+}
+p {
+    color: var(--text-primary2);
+}
+#nav-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 13vh;
+    height: 100vh; /* Full viewport height */
+    z-index: 100; /* Ensure it's above other content */
+    background-color: var(--bg-dark1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+}
+#content {
+    position: fixed;
+    width: calc(100% - 13vh);
+    height: calc(100vh - 2vh);
+    top: 2vh;
+    right: 0;
+    margin-left: 13vh;
+    background-color: var(--bg-black);
+}
+@media (max-width: 768px) { /* Adjust the breakpoint as needed */
+    #nav-bar {
+        bottom: 0;
+        top: auto;
+        left: 0;
+        width: 100%;
+        height: 13vh;
+        flex-direction: row;
+    }
+    #content {
+        height: calc(100% - 13vh);
+        width: 100%;
+        margin-bottom: 13vh;
+        background-color: white;
+    }
+    #top-bar-container {
+        position: fixed;
+        width: 100%;
+        left: 0;
+        right: 0;
+    }
+}
+.nav-bar-buttons {
+    width: 13vh;
+    height: 10vh;
+    background-color: transparent;
+    border: 0;
+    transition: background-color 0.2s, font-size 0.5s;
+    border-radius: 10px; 
+}
+.nav-bar-buttons.nav-bar-buttons-active > span {
+    width: 50px;
+    height: 30px;
+    border-radius: 10px;
+    transition: background-color 0.3s;
+}
+.nav-bar-buttons.nav-bar-buttons-active:not(.hidden) > span {
+   background-color: var(--bg-active); 
+}
+.nav-bar-buttons.nav-bar-buttons-active:not(.hidden) {
+    background-color: var(--bg-dark2);
+}
+.nav-bar-buttons.nav-bar-buttons-active > span,
+.nav-bar-buttons.nav-bar-buttons-active > p {
+    color: var(--text-accent);
+    font-weight: bold;
+}
+.nav-bar-buttons p {
+    margin: 0px;
+}
+.hidden {
+    display: none;
+}
+.nav-content {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    margin: 8px;
+    background-color: var(--bg-black);
+}
+
+/*balance container*/
+#balance-container {
+    position: fixed;
+    min-width: 80px; /* Changed from width: 100px to min-width: 80px */
+    height: 50px;
+    background-color: var(--bg-dark2);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    top: 30px;
+    right: 30px;
+    z-index: 101;
+    padding: 0 20px; /* Add some horizontal padding */
+    transition: all 0.3s ease-in-out;
+}
+
+#money-balance {
+    white-space: nowrap; /* Prevent text from wrapping */
+    font-size: 1.2rem;
+    transition: all 0.3s ease-in-out;
+}
+#currency-balance {
+    margin-left: 5px;
+    color: var(--text-accent);
+}
+
+/*
+home tabas
+*/
+.nav-content.home {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#dashboard-container {
+    width: 90%;
+    height: 90%;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    grid-column-gap: 0px;
+    grid-row-gap: 0px;
+    gap: 15px;
+}
+#dashboard-account-value-container {
+    background-color: var(--bg-dark1);
+    grid-area: 1 / 1 / 2 / 3;
+    border-radius: 15px;
+    padding: 15px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    border: 2px solid var(--bg-black);
+}
+#acc-value-header {
+    margin-bottom: 40px;
+}
+#total-account-value, #todays-change-value {
+    margin: 0;
+    font-size: 2rem;
+}
+#todays-change-value, #todays-change-percentage  {
+    color: var(--text-green);
+}
+
+#dashboard-recent-transactions-container {
+    background-color: var(--bg-dark1);
+    grid-area: 2 / 1 / 3 / 3;
+    border-radius: 15px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    border: 2px solid var(--bg-black);
+}
+#dashboard-graph-container {
+    background-color: var(--bg-dark1);
+    grid-area: 1 / 3 / 3 / 6;
+    border-radius: 15px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    border: 2px solid var(--bg-black);
+}
+@media (max-width: 768px) { /* Adjust the breakpoint as needed */
+    #dashboard-container {
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+    }
+    #dashboard-account-value-container {
+        width: 100%;
+        height: 100%;
+    }
+    #dashboard-recent-transactions-container {
+        width: 100%;
+        height: 100%;
+    }
+    #dashboard-graph-container {
+        width: 100%;
+        height: 100%;
+    }
+}
+
+/*stocks buy sell*/
+#owned-stocks-amount {
+    position: absolute;
+    top: -5px;
+    font-style: italic;
+}
+ #buysell-container {
+    position: absolute;
+    top: 5%;
+    width: 100%;
+    height: 95%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: 1fr 1fr 0.5fr;
+    grid-column-gap: 0px;
+    grid-row-gap: 0px;
+}
+#stocks-table {
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 10px;
+  background-color: var(--bg-dark1);
+  width: 80%;
+  height: 100px;
+  text-align: center;
+  border-collapse: collapse;
+  grid-area: 2 / 1 / 3 / 3;
+  color: var(--text-primary2);
+  transition: height 1s;
+  overflow-y: auto;
+  max-height: 40px;
+  border: 2px solid var(--bg-black);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+}
+#stocks-table tbody {
+    display: block;   
+}
+#stocks-table th {
+    font-weight: bold; 
+    padding: 10px; 
+    background-color: var(--bg-dark2);
+    color: var(--text-primary2);
+}
+#stocks-table td[stock='1'] {
+    padding: 10px; 
+    border-bottom: 1px solid var(--bg-dark2); 
+}
+#stocks-table tr:first-child{
+    font-weight: bold;
+}
+#stocks-table tr {
+    height: 50px;
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    transition: background-color 0.15s;
+}
+#stocks-table tr:not(:last-child) {
+    border-bottom: 1px solid var(--bg-dark2);
+}
+#stocks-buy-sell {
+    margin-left: auto;
+    margin-right: auto;
+    grid-area: 1 / 1 / 3 / 3;
+    height: 200px;
+    width: 80%;
+    border: 2px solid var(--bg-black);
+    border-radius: 5px;
+    background-color: var(--bg-dark1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: 1.3fr 0.7fr;
+    grid-template-rows: repeat(2, 1fr);
+    grid-column-gap: 10px;
+    grid-row-gap: 0px;
+}
+.stocks-row-active {
+    outline: 3px solid var(--accent-dark);
+    background-color: var(--bg-dark2);
+}
+.stocks-row-active td {
+    font-weight: bold;
+    color: var(--text-accent);
+}
+#stocks-buy-sell-div1 {
+    grid-area: 1 / 1 / 2 / 2;
+    border: rgba(255, 0, 0, 0.193);
+    display: flex;
+    flex-direction: row;
+    padding: 10px;
+    align-items: center;   
+    border-bottom: 2px solid var(--bg-dark2);
+    height: 100%;
+}
+#stocks-buy-sell-div1 *, #stocks-buy-sell-div2 * {
+    margin-right: 10px;
+}
+#stocks-buy-sell-div2 {
+    height: 100%;
+    grid-area: 2 / 1 / 3 / 2; 
+    border: rgba(255, 0, 0, 0.193);
+    display: flex;
+    flex-direction: row;
+    padding: 10px;
+    align-items: center;
+}
+#stocks-buy-sell-div3 {
+    grid-area: 1 / 2 / 3 / 3;
+    border: rgba(255, 0, 0, 0.193);
+    height: 100%;
+}
+#stocks-buy-sell-text1, #stocks-buy-sell-text2 {
+    min-width: 50px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: bold;
+    color: var(--text-accent);
+}
+#button-buy {
+    background-color: var(--accent-dark);
+    border-radius: 20px;
+    border: 0;
+    color: var(--text-primary2);
+    width: 120px;
+    height: 30px;
+    font-family: "Roboto", serif;
+    font-optical-sizing: auto;
+    font-weight: 300;
+    font-style: normal;
+    border: 1px solid var(--button-active);
+    font-size: 1rem;
+    letter-spacing: 1px;
+    transition: background-color 0.2s;
+}
+#button-sell {
+    background-color: transparent;
+    border-radius: 20px;
+    border: 3px solid var(--accent-dark);
+    color: var(--accent-text);
+    width: 120px;
+    height: 30px;
+    font-family: "Roboto", serif;
+    font-optical-sizing: auto;
+    font-weight: 300;
+    font-style: normal;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    transition: background-color 0.2s;
+}
+#button-sell:hover, #button-buy:hover {
+    background-color: var(--button-active2);
+}
+.stocks-buy-sell-input {
+    max-width: 70px;
+    height: 20px;
+    background-color: transparent;
+    border: 0;
+    border-bottom: 2px solid var(--accent-dark);
+    color: var(--text-primary2);
+    font-size: 1rem;
+}
+.stocks-buy-sell-input:focus {
+    outline: none;
+    background-color: var(--overlay);
+}
+
+/*portfolio*/
+#portfolio-table {
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 10px;
+    background-color: var(--bg-dark1);
+    width: 80%;
+    height: 100px;
+    text-align: center;
+    border-collapse: collapse;
+    grid-area: 2 / 1 / 3 / 3;
+    color: var(--text-primary2);
+    transition: height 1s;
+    overflow-y: auto;
+    max-height: 40px;
+    border: 2px solid var(--bg-black);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  }
+  #portfolio-table tbody {
+      display: block;   
+  }
+  #portfolio-table th {
+      font-weight: bold; 
+      padding: 10px; 
+      background-color: var(--bg-dark2);
+      color: var(--text-primary2);
+  }
+  #portfolio-table td[stock='1'] {
+      padding: 10px; 
+      border-bottom: 1px solid var(--bg-dark2); 
+  }
+  #portfolio-table tr:first-child{
+      font-weight: bold;
+  }
+  #portfolio-table tr {
+      height: 50px;
+      display: table;
+      width: 100%;
+      table-layout: fixed;
+      transition: background-color 0.15s;
+  }
+  #portfolio-table tr:not(:last-child) {
+      border-bottom: 1px solid var(--bg-dark2);
+  }

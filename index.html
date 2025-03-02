@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Rajdhani&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+        <link rel="stylesheet" type="text/css" href="./index.css">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <script type="importmap">
+    {
+      "imports": {
+        "@material/web/": "https://esm.run/@material/web/"
+      }
+    }
+  </script>
+  <script type="module">
+    import '@material/web/all.js';
+    import {styles as typescaleStyles} from '@material/web/typography/md-typescale-styles.js';
+    document.adoptedStyleSheets.push(typescaleStyles.styleSheet);
+  </script>
+    </head>
+    <body>
+        <div id="nav-bar">
+            <button value="home" class="nav-bar-buttons nav-bar-buttons-active">
+                <span class="material-symbols-outlined">home</span>
+                <p>Home</p>
+            </button>
+            <button value="portfolio" class="nav-bar-buttons">
+                <span class="material-symbols-outlined">category</span>
+                <p>Portfolio</p>
+            </button>
+            <button value="buysell" class="nav-bar-buttons">
+                <span class="material-symbols-outlined">shopping_cart</span>
+                <p>Buy/sell</p>
+            </button>
+            <!--
+            <button value="help" class="nav-bar-buttons">
+                <span class="material-symbols-outlined">settings</span>
+                <p>Options</p>
+            </button>
+        -->
+        </div>
+        <div id="content">
+            <!--cia bus contentas kuris priklauso nuo pasirinkto navigation bare mygtuko-->
+            <div class="nav-content home">
+                <div id="dashboard-container">
+                    <div id="dashboard-account-value-container">
+                        <div id="acc-value-header">
+                            <p>TOTAL STOCKS VALUE</p>
+                            <p id="total-account-value"><span>$ </span>+?????</p>
+                        </div>
+                       <!-- <div>
+                            <p>TODAY'S CHANGE</p>
+                            <p id="todays-change-value">+?????<span> EUR</span></p>
+                            <p id="todays-change-percentage">(+????? %)</p>
+                        </div>-->
+                    </div>
+                   <!-- <div id="dashboard-recent-transactions-container">
+                        <p>cia bus recent transactions</p>
+                    </div>
+                    <div id="dashboard-graph-container">
+                        <p>cia siokia tokia kreive reikes nubraizyt</p>
+                    </div>-->
+                </div>
+            </div>
+            <div class="nav-content portfolio hidden">
+                <table id="portfolio-table">
+                    <tbody>
+                        <tr>
+                            <td>Name</td>
+                            <td>Price</td>
+                            <td>Description</td>
+                            <td>Change</td>
+                            <td>Amount</td>
+                            <td>Total value</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="nav-content buysell hidden">
+                <div id="buysell-container">
+                    <div id="stocks-buy-sell">
+                        <div id="stocks-buy-sell-div1">
+                            <p>Buy </p>
+                            <input disabled placeholder="0" value="0" type="number" min="0" class="stocks-buy-sell-input buy-stock-amount">
+                            <p> of </p>
+                            <span id="stocks-buy-sell-text1">------</span>
+                            <p> for </p>
+                            <input disabled placeholder="0" type="number" value="0" min="0" class="stocks-buy-sell-input buy-stock-for">
+                            <p> EUR</p>
+                            <button disabled id="button-buy">Buy</button>
+                            <p id="owned-stocks-amount">Select row to buy/sell</p>
+                        </div>
+                        <div id="stocks-buy-sell-div2">
+                            <p>Sell </p>
+                            <input disabled placeholder="0" value="0" type="number" min="0" class="stocks-buy-sell-input sell-stock-amount">
+                            <p> of </p>
+                            <span id="stocks-buy-sell-text2">------</span>
+                            <p> for </p>
+                            <input disabled placeholder="0" type="number" value="0" min="0" class="stocks-buy-sell-input sell-stock-for">
+                            <p> EUR</p>
+                            <button disabled id="button-sell">Sell</button>
+                        </div>
+                        <div id="stocks-buy-sell-div3">
+                            <p id="test1"></p>
+                            <p id="test2"></p>
+                            <p id="test3"></p>
+                        </div>
+                    </div>
+                    <table id="stocks-table">
+                        <tbody>
+                            <tr>
+                                <td>Name</td>
+                                <td>Price</td>
+                                <td>Description</td>
+                                <td>Volume</td>
+                                <td>Market cap</td>
+                                <td>Revenue</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="nav-content help hidden">
+                <p>ketvirtas nav</p>
+            </div>
+        </div>
+        <div id="balance-container">
+            <p id="money-balance"></p>
+            <span id="currency-balance">EUR</span>
+        </div>
+    </body>
+    <script type="module" src="./index.js"></script>
+</html>
