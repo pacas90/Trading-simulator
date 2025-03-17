@@ -1,6 +1,7 @@
 import { User } from "./user.js";
 import { Broker } from "./stock.js";
 import { GlobalStockList } from "./stock.js";
+import { BuyDialog } from "./ui.js";
 const user = new User();
 const stockList = new GlobalStockList();
 const broker = new Broker();
@@ -9,8 +10,6 @@ const broker = new Broker();
 broker.marketOrderBuy(stockList.getStock(1).name,5);
 broker.marketOrderSell(stockList.getStock(2).name,0.5533333333333333);
 user.printStockList(); */
-
-
 
 //sukursiu siandien dar jeigu spesiu mygtuku buy/sell bet neprizadu ar spesiu
 
@@ -39,9 +38,14 @@ const todaysChangePercentage = document.querySelector('#todays-change-percentage
 // apacioj cia yra aprasyti du event'ai button clicku (buy ir sell),
 // reik aprasyti logika, kas buna kai nusiperki ar parduodi ir issaugot viska localStorage
 
+//stockList.fetchStockInfo(); // API UPDATAM 
+//stockList.loadStockInfo();
+//console.log(localStorage.getItem("lastStockInfo"));
+
+stockList.loadStockInfo();
 
 
-
+// pagr. navigacijos buttonai
 const navButtons = document.querySelectorAll('.nav-bar-buttons'); //navigacijos mygtukai
 const content = document.querySelectorAll(".nav-content"); // content'as skirtingu skyriu (home, buy/sell, portfolio..)
 //cia perjungia skyrius ant mygtuku paspaudimo
@@ -53,13 +57,41 @@ navButtons.forEach(button => {
         }
         button.classList.add('nav-bar-buttons-active');
         document.querySelector(`.nav-content.${button.getAttribute('value')}`).classList.remove('hidden');
-
+    });
+});
+//buy dialogo navigacijos buttonai
+const buyDialogNavButtons = document.querySelectorAll('#buy-stock-dialog-navigation-container button');
+//console.log(buyDialogNavButtons.getAttribute('id'));
+const buyDialogContent = document.querySelectorAll('.buy-stock-dialog-content');
+buyDialogNavButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        for(let i = 0; i < buyDialogNavButtons.length; i++) {
+            buyDialogNavButtons[i].classList.remove('active-dialog-nav-button');
+            buyDialogContent[i].classList.add('hidden');
+        }
+        button.classList.add('active-dialog-nav-button');
+        document.querySelector(`.buy-stock-dialog-content.${button.classList[0]}`).classList.remove('hidden');
     });
 });
 
 // sukuria nauja stock'o lenteles skyriu buy/sell tab'e
 
-stockList.addStocksFromList()
+stockList.addStocksFromList();
+//user.clearUserStocks();
+//broker.marketOrderBuy("AAPL",30);
+//user.addBalance(200);
+//broker.LimitOrderBuy("AAPL",20,3);
+  //broker.LimitOrderSell("AAPL",30,1);
+  //broker.LimitOrderSell("AAPL",30,1);
+  //broker.LimitOrderSell("AAPL",30,1);
+
+
+//stockList.UpdateStockPrice("AAPL",250);
+//console.log(stockList.getStock(0).name+" "+ stockList.getStock(0).price);
+//broker.UpdateLimitOrders();
+//user.printOrdersToConsole();
+//console.log("----=-=-=-=-=-=");
+//user.printStockList();
 user.putStocksToPortfolioTable();
 /*
 addStockToTable("test2", 2, "a", 5, 5, 5);
@@ -85,7 +117,7 @@ const stocksSellStockForInput = document.querySelector('.stocks-buy-sell-input.s
 const stocksSellStockAmountInput = document.querySelector('.stocks-buy-sell-input.sell-stock-amount'); 
 
 const ownedStocksAmount = document.querySelector('#owned-stocks-amount');
-
+/*
 function disableInputs(flag) {
     if (flag == true) {
         stocksBuyText1.textContent = '------';
@@ -131,6 +163,24 @@ function updateStocksTotalValue() {
     }); 
 }
 
+
+*/
+var buyDialog = new BuyDialog();
+buyDialog.init();
+const lightModeSwitch = document.querySelector('#light-mode-switch');
+lightModeSwitch.addEventListener('input', () => {
+    if (lightModeSwitch.checked) {
+        document.body.classList = '';
+        document.body.classList.add('light-theme');
+    }
+    else {
+        document.body.classList = '';
+        document.body.classList.add('dark-theme');
+    }
+});
+
+/************************* SENAS BUDAS PIRKIMO CIA DEL VISA KO ***************************/
+/*
 var contains = false;
 stocksRows.forEach(row => {
     if (!row.isEqualNode(stocksRows[0])) {
@@ -142,30 +192,12 @@ stocksRows.forEach(row => {
                 disableInputs(true);
             })
             row.classList.toggle('stocks-row-active');
-            //disableInputs(false);
             if (row.classList.contains('stocks-row-active')) {
                 stocksBuyText1.textContent = `${row.getAttribute('name')}`;
                 stocksSellText1.textContent = `${row.getAttribute('name')}`; 
-                /*var amount = user.getStockAmount(user.getStockIndexByName(row.getAttribute('name')));
-                ownedStocksAmount.innerHTML = 
-                    `You have ${amount.toFixed(5)}
-                     (${(amount * broker.findStockByName(row.getAttribute('name')).price).toFixed(2)} 
-                     <span style=color:var(--text-accent);margin:0;>EUR</span>)`;*/
                 updateStocksTotalValue();
                 disableInputs(false);
             }
-            
-            // stocksRows.forEach(row3 => {
-            //     if (row3.classList.contains('stocks-row-active')) {
-            //         contains = true;
-            //         return;
-            //     }
-            //     else {
-            //         contains = false;
-            //     }
-            // });
-            // if (contains) disableInputs(false)
-            // else disableInputs(true);
         });
     }
 });
@@ -202,15 +234,6 @@ function updateSellStockForInput() {
 
 
 
-
-
-
-
-
-
-
-
-
 // cia pirkimas stocku
 stocksBuyButton.addEventListener('click', () => {
     const name = stocksBuyText1.textContent;
@@ -233,7 +256,7 @@ stocksSellButton.addEventListener('click', () => {
     user.updatePortfolio();
     updateStocksTotalValue();
 });
-
+*/
 
 
 //portfolio table

@@ -1,11 +1,12 @@
 body {
     margin: 0;
     padding: 0; 
+    box-sizing: border-box;
 }
-:root {
-    --bg-black: #262626;
-    --bg-dark1: #313131;
-    --bg-dark2: #3a3a3a;
+.dark-theme {
+    --bg: #262626;
+    --bg-1: #313131;
+    --bg-2: #3a3a3a;
 
     --bg-active: #534450;
     --button-active: #613658;
@@ -18,19 +19,54 @@ body {
     --accent-dark: #60435d;
 
     --text-green: #87ff83;
+    --text-red: #e15d5d;
 
-    --overlay: #ffffff28;
+
+    --overlay: #14141472;
+}
+.light-theme {
+    --bg: #e8e8e8;
+    --bg-1: #ffffff;
+    --bg-2: #ececec;
+
+    --bg-active: #c69dbc;
+    --button-active: #d37dc0;
+    --button-active2: #a779a1;
+
+    --text-primary: #000000;
+    --text-primary2: #1e1e1e;
+    --text-accent: #7e507a;
+
+    --accent-dark: #b587b1;
+
+    --text-green: #87ff83;
+    --text-red: #e15d5d;
+
+
+    --overlay: #14141472;
+}
+:root {
+    
 
     color: var(--text-primary);
-    background-color: var(--bg-black);
+    background-color: var(--bg);
 
     font-family: "Roboto", serif;
     font-optical-sizing: auto;
     font-weight: 300;
     font-style: normal;
 }
+.button {
+    border: 0;
+    background-color: 0;
+    padding: 10px;
+}
 .material-symbols-outlined {
     color: var(--text-primary2);
+}
+
+* {
+    box-sizing: border-box;
 }
 p {
     color: var(--text-primary2);
@@ -42,7 +78,7 @@ p {
     width: 13vh;
     height: 100vh; /* Full viewport height */
     z-index: 100; /* Ensure it's above other content */
-    background-color: var(--bg-dark1);
+    background-color: var(--bg-1);
     display: flex;
     flex-direction: column;
     box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
@@ -50,11 +86,11 @@ p {
 #content {
     position: fixed;
     width: calc(100% - 13vh);
-    height: calc(100vh - 2vh);
-    top: 2vh;
+    height: calc(100vh - 0vh);
+    top: 0;
     right: 0;
     margin-left: 13vh;
-    background-color: var(--bg-black);
+    background-color: var(--bg);
 }
 @media (max-width: 768px) { /* Adjust the breakpoint as needed */
     #nav-bar {
@@ -62,20 +98,27 @@ p {
         top: auto;
         left: 0;
         width: 100%;
-        height: 13vh;
+        height: 10vh;
         flex-direction: row;
     }
     #content {
-        height: calc(100% - 13vh);
+        height: calc(100% - 10vh);
         width: 100%;
-        margin-bottom: 13vh;
+        margin-bottom: 10vh;
         background-color: white;
+        margin: 0;
     }
     #top-bar-container {
         position: fixed;
         width: 100%;
         left: 0;
         right: 0;
+    }
+    .description {
+        display: none;
+    }
+    .change {
+        display: none;
     }
 }
 .nav-bar-buttons {
@@ -96,7 +139,7 @@ p {
    background-color: var(--bg-active); 
 }
 .nav-bar-buttons.nav-bar-buttons-active:not(.hidden) {
-    background-color: var(--bg-dark2);
+    background-color: var(--bg-2);
 }
 .nav-bar-buttons.nav-bar-buttons-active > span,
 .nav-bar-buttons.nav-bar-buttons-active > p {
@@ -106,6 +149,30 @@ p {
 .nav-bar-buttons p {
     margin: 0px;
 }
+/*options tab*****************/
+.nav-content.help.hidden {
+    display: none;
+}
+.nav-content.help {
+    display: flex;
+    justify-content: center;
+}
+.options-tabs {
+    width: 80%;
+    height: 60px;
+    border-radius: 10px;
+    background-color: var(--bg-1);
+    color: var(--text-primary2);
+    border: 2px solid var(--bg);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    display: flex;
+    align-items: center;
+    padding-left: 30px;
+}
+.options-tabs:first-child {
+    margin-top: 30px;
+}
+/******/
 .hidden {
     display: none;
 }
@@ -114,8 +181,8 @@ p {
     width: 100%;
     height: 100%;
     top: 0;
-    margin: 8px;
-    background-color: var(--bg-black);
+    margin: 0px;
+    background-color: var(--bg);
 }
 
 /*balance container*/
@@ -123,7 +190,7 @@ p {
     position: fixed;
     min-width: 80px; /* Changed from width: 100px to min-width: 80px */
     height: 50px;
-    background-color: var(--bg-dark2);
+    background-color: var(--bg-2);
     box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
     display: flex;
     align-items: center;
@@ -145,7 +212,6 @@ p {
     margin-left: 5px;
     color: var(--text-accent);
 }
-
 /*
 home tabas
 */
@@ -165,12 +231,12 @@ home tabas
     gap: 15px;
 }
 #dashboard-account-value-container {
-    background-color: var(--bg-dark1);
+    background-color: var(--bg-1);
     grid-area: 1 / 1 / 2 / 3;
     border-radius: 15px;
     padding: 15px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-    border: 2px solid var(--bg-black);
+    border: 2px solid var(--bg);
 }
 #acc-value-header {
     margin-bottom: 40px;
@@ -183,19 +249,12 @@ home tabas
     color: var(--text-green);
 }
 
-#dashboard-recent-transactions-container {
-    background-color: var(--bg-dark1);
-    grid-area: 2 / 1 / 3 / 3;
-    border-radius: 15px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-    border: 2px solid var(--bg-black);
-}
 #dashboard-graph-container {
-    background-color: var(--bg-dark1);
+    background-color: var(--bg-1);
     grid-area: 1 / 3 / 3 / 6;
     border-radius: 15px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-    border: 2px solid var(--bg-black);
+    border: 2px solid var(--bg);
 }
 @media (max-width: 768px) { /* Adjust the breakpoint as needed */
     #dashboard-container {
@@ -235,21 +294,29 @@ home tabas
     grid-row-gap: 0px;
 }
 #stocks-table {
-  margin-left: auto;
-  margin-right: auto;
-  border-radius: 10px;
-  background-color: var(--bg-dark1);
-  width: 80%;
+  margin: 0;
+  border-radius: 15px;
+  background-color: var(--bg-1);
+  width: 100%;
   height: 100px;
   text-align: center;
   border-collapse: collapse;
   grid-area: 2 / 1 / 3 / 3;
   color: var(--text-primary2);
   transition: height 1s;
-  overflow-y: auto;
   max-height: 40px;
-  border: 2px solid var(--bg-black);
+  border: 2px solid var(--bg);
   box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  overflow: scroll;
+}
+#stocks-table-wrapper {
+    height: 600px;
+    overflow-y: scroll;
+    width: 80%;
+    padding: 0;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 30px;
 }
 #stocks-table tbody {
     display: block;   
@@ -257,15 +324,21 @@ home tabas
 #stocks-table th {
     font-weight: bold; 
     padding: 10px; 
-    background-color: var(--bg-dark2);
+    background-color: var(--bg-2);
     color: var(--text-primary2);
+}
+#stocks-table td {
+    overflow-x: hidden;
 }
 #stocks-table td[stock='1'] {
     padding: 10px; 
-    border-bottom: 1px solid var(--bg-dark2); 
+    border-bottom: 1px solid var(--bg-2); 
 }
 #stocks-table tr:first-child{
     font-weight: bold;
+}
+#stocks-table tr:not(:first-child):hover {
+    background-color: var(--bg-2);
 }
 #stocks-table tr {
     height: 50px;
@@ -273,9 +346,10 @@ home tabas
     width: 100%;
     table-layout: fixed;
     transition: background-color 0.15s;
+    position: sticky;
 }
 #stocks-table tr:not(:last-child) {
-    border-bottom: 1px solid var(--bg-dark2);
+    border-bottom: 1px solid var(--bg-2);
 }
 #stocks-buy-sell {
     margin-left: auto;
@@ -283,9 +357,9 @@ home tabas
     grid-area: 1 / 1 / 3 / 3;
     height: 200px;
     width: 80%;
-    border: 2px solid var(--bg-black);
+    border: 2px solid var(--bg);
     border-radius: 5px;
-    background-color: var(--bg-dark1);
+    background-color: var(--bg-1);
     box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
     display: flex;
     align-items: center;
@@ -299,7 +373,7 @@ home tabas
 }
 .stocks-row-active {
     outline: 3px solid var(--accent-dark);
-    background-color: var(--bg-dark2);
+    background-color: var(--bg-2);
 }
 .stocks-row-active td {
     font-weight: bold;
@@ -312,7 +386,7 @@ home tabas
     flex-direction: row;
     padding: 10px;
     align-items: center;   
-    border-bottom: 2px solid var(--bg-dark2);
+    border-bottom: 2px solid var(--bg-2);
     height: 100%;
 }
 #stocks-buy-sell-div1 *, #stocks-buy-sell-div2 * {
@@ -339,22 +413,7 @@ home tabas
     font-weight: bold;
     color: var(--text-accent);
 }
-#button-buy {
-    background-color: var(--accent-dark);
-    border-radius: 20px;
-    border: 0;
-    color: var(--text-primary2);
-    width: 120px;
-    height: 30px;
-    font-family: "Roboto", serif;
-    font-optical-sizing: auto;
-    font-weight: 300;
-    font-style: normal;
-    border: 1px solid var(--button-active);
-    font-size: 1rem;
-    letter-spacing: 1px;
-    transition: background-color 0.2s;
-}
+
 #button-sell {
     background-color: transparent;
     border-radius: 20px;
@@ -373,27 +432,14 @@ home tabas
 #button-sell:hover, #button-buy:hover {
     background-color: var(--button-active2);
 }
-.stocks-buy-sell-input {
-    max-width: 70px;
-    height: 20px;
-    background-color: transparent;
-    border: 0;
-    border-bottom: 2px solid var(--accent-dark);
-    color: var(--text-primary2);
-    font-size: 1rem;
-}
-.stocks-buy-sell-input:focus {
-    outline: none;
-    background-color: var(--overlay);
-}
+
 
 /*portfolio*/
 #portfolio-table {
-    margin-left: auto;
-    margin-right: auto;
+
     border-radius: 10px;
-    background-color: var(--bg-dark1);
-    width: 80%;
+    background-color: var(--bg-1);
+    width: 100%;
     height: 100px;
     text-align: center;
     border-collapse: collapse;
@@ -402,21 +448,34 @@ home tabas
     transition: height 1s;
     overflow-y: auto;
     max-height: 40px;
-    border: 2px solid var(--bg-black);
+    border: 2px solid var(--bg);
     box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
   }
+  #portfolio-table-wrapper {
+    height: auto;
+    max-height: 600px;
+    overflow-y: scroll;
+    width: 80%;
+    padding: 0;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 30px;
+}
+#portfolio-table-wrapper::-webkit-scrollbar, #stocks-table-wrapper::-webkit-scrollbar {
+    width: 0 !important;
+}
   #portfolio-table tbody {
       display: block;   
   }
   #portfolio-table th {
       font-weight: bold; 
       padding: 10px; 
-      background-color: var(--bg-dark2);
+      background-color: var(--bg-2);
       color: var(--text-primary2);
   }
   #portfolio-table td[stock='1'] {
       padding: 10px; 
-      border-bottom: 1px solid var(--bg-dark2); 
+      border-bottom: 1px solid var(--bg-2); 
   }
   #portfolio-table tr:first-child{
       font-weight: bold;
@@ -429,5 +488,241 @@ home tabas
       transition: background-color 0.15s;
   }
   #portfolio-table tr:not(:last-child) {
-      border-bottom: 1px solid var(--bg-dark2);
+      border-bottom: 1px solid var(--bg-2);
   }
+  #portfolio-table tr:not(:first-child):hover {
+    background-color: var(--bg-2);
+  }
+  /*dialog*/
+  .dialog-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--overlay);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.1s;
+  }
+  .dialog-container {
+    background-color: var(--bg-1);
+    padding: 20px;
+    border-radius: 10px;
+    width: 50%;
+    height: 40%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    overflow: hidden;
+  }
+  @media (max-width: 768px) {
+    .dialog-container {
+      width: 90%;
+    }
+  }
+  .dialog-hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  #buy-stock-dialog-navigation-container {
+    width: calc(100%+40px);
+    height: 40px;
+    margin: -20px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: row;
+  }
+  #buy-stock-dialog-navigation-container button {
+    width: 33.3%;
+    height: 100%;
+    background-color: transparent;
+    border: 0;
+    color: var(--text-primary2);
+    border-bottom: 2px solid transparent;
+  }
+  #buy-stock-dialog-navigation-container button.active-dialog-nav-button {
+    border-bottom: 2px solid var(--accent-dark);
+    color: var(--text-accent);
+    font-weight: bold;
+  }
+  .buy-stock-dialog-content.buy {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(2, 0.01fr) 0.8fr 0.2fr;
+    grid-column-gap: 0px;
+    grid-row-gap: 0px;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+  }
+ 
+  .buy > .dialog-stock-name { 
+    grid-area: 1 / 1 / 2 / 2; 
+    font-weight: bold;
+    color: var(--text-accent);
+    margin: 0;
+  }
+  .buy > .dialog-stock-price { 
+    grid-area: 2 / 1 / 3 / 2; 
+    font-size: 1.5rem;
+    margin: 2px;
+  }
+  .buy > .dialog-price-graph { grid-area: 3 / 1 / 4 / 2; }
+  .buy > .dialog-buttons { 
+    grid-area: 4 / 1 / 5 / 2; 
+    height: 40px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+  .dialog-buttons * {
+    margin-right: 10px;
+  } 
+  .buy-stock-dialog-input {
+    max-width: 70px;
+    height: 20px;
+    background-color: transparent;
+    border: 0;
+    border-bottom: 2px solid var(--accent-dark);
+    color: var(--text-primary2);
+    font-size: 1rem;
+}
+.buy-stock-dialog-input:focus {
+    outline: none;
+    background-color: var(--overlay);
+}
+.dialog-button {
+    background-color: var(--accent-dark);
+    border-radius: 20px;
+    border: 0;
+    color: var(--text-primary2);
+    width: 120px;
+    height: 30px;
+    font-family: "Roboto", serif;
+    font-optical-sizing: auto;
+    font-weight: 300;
+    font-style: normal;
+    border: 1px solid var(--button-active);
+    font-size: 1rem;
+    letter-spacing: 1px;
+    transition: background-color 0.2s;
+}
+.dialog-button:hover {
+    outline: 3px solid var(--button-active)
+}
+.buy-stock-dialog-content.sell > .dialog-stock-price p {
+    margin: 0;
+}
+.buy-stock-dialog-content.sell > .dialog-stock-price p:last-child {
+    margin-top: 10px;
+    font-size: 1rem;
+}
+#sell-all-stocks-button {
+    margin: 0;
+    background-color: transparent;
+    grid-area: 4 / 1 / 5 / 2;
+}
+.buy-stock-dialog-content.sell {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 0.1fr 1fr 0.5fr 0.5fr;
+    grid-column-gap: 0px;
+    grid-row-gap: 0px;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+  }
+  .sell > .dialog-stock-name { 
+    grid-area: 1 / 1 / 2 / 2; 
+    font-weight: bold;
+    color: var(--text-accent);
+    margin: 0;
+  }
+  .sell > .dialog-stock-price { 
+    grid-area: 2 / 1 / 3 / 2;
+    font-size: 1.5rem;
+    margin: 2px;
+  }
+  .sell > .dialog-buttons { 
+    grid-area: 3 / 1 / 4 / 2;
+    height: 40px; 
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+ /*dialog*/
+
+ /* recent transactions */
+ #dashboard-recent-transactions-container {
+    background-color: var(--bg-1);
+    grid-area: 2 / 1 / 3 / 3;
+    border-radius: 15px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    border: 2px solid var(--bg);
+    padding: 10px;
+    box-sizing: border-box;
+    height: 100%;
+}
+#dashboard-recent-transactions-header {
+    height: 30px;
+    margin: 5px;
+}
+#dashboard-transactions-container {
+    width: 100%;
+    height: calc(100% - 40px);
+    overflow-y: scroll;
+}
+#dashboard-transactions-container::-webkit-scrollbar {
+    width: 0 !important;
+}
+ .transaction-info-container {
+    width: 100%;
+    height: 40px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-evenly;
+    border-top: 2px solid var(--bg-2);
+ }
+ /* .transaction-info-container > .transaction-amount,  .transaction-info-container > .transaction-for {
+    width: 15%;
+    overflow-x: scroll;
+ } */
+
+ .transaction-info-container p {
+    margin-left: 5px;
+ }
+ .bought {
+    color: var(--text-green);
+ }
+ .sold {
+    color: var(--text-red);
+ }
+ .transaction-stock-name {
+    color: var(--text-accent);
+    font-weight: bold;
+ }
+ /*limit order*/
+ .buy-stock-dialog-content.limit-order {
+    height: 100%;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 0.6fr 0.4fr;
+    grid-column-gap: 0px;
+    grid-row-gap: 0px;
+ }
+ #limit-order-container {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    grid-area: 2 / 1 / 3 / 2;
+ }
+#limit-order-container * {
+    margin-right: 10px;
+}
+.buy-stock-dialog-content.hidden {
+    display: none;
+}

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Rajdhani&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
@@ -20,7 +21,7 @@
     document.adoptedStyleSheets.push(typescaleStyles.styleSheet);
   </script>
     </head>
-    <body>
+    <body class="dark-theme">
         <div id="nav-bar">
             <button value="home" class="nav-bar-buttons nav-bar-buttons-active">
                 <span class="material-symbols-outlined">home</span>
@@ -34,12 +35,10 @@
                 <span class="material-symbols-outlined">shopping_cart</span>
                 <p>Buy/sell</p>
             </button>
-            <!--
             <button value="help" class="nav-bar-buttons">
                 <span class="material-symbols-outlined">settings</span>
                 <p>Options</p>
             </button>
-        -->
         </div>
         <div id="content">
             <!--cia bus contentas kuris priklauso nuo pasirinkto navigation bare mygtuko-->
@@ -56,80 +55,107 @@
                             <p id="todays-change-percentage">(+????? %)</p>
                         </div>-->
                     </div>
-                   <!-- <div id="dashboard-recent-transactions-container">
-                        <p>cia bus recent transactions</p>
+                   <div id="dashboard-recent-transactions-container">
+                        <p id="dashboard-recent-transactions-header">RECENT TRANSACTIONS</p>
+                        <div id="dashboard-transactions-container">
+
+                        </div>
                     </div>
-                    <div id="dashboard-graph-container">
+                    <!--<div id="dashboard-graph-container">
                         <p>cia siokia tokia kreive reikes nubraizyt</p>
                     </div>-->
                 </div>
             </div>
             <div class="nav-content portfolio hidden">
-                <table id="portfolio-table">
-                    <tbody>
-                        <tr>
-                            <td>Name</td>
-                            <td>Price</td>
-                            <td>Description</td>
-                            <td>Change</td>
-                            <td>Amount</td>
-                            <td>Total value</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="nav-content buysell hidden">
-                <div id="buysell-container">
-                    <div id="stocks-buy-sell">
-                        <div id="stocks-buy-sell-div1">
-                            <p>Buy </p>
-                            <input disabled placeholder="0" value="0" type="number" min="0" class="stocks-buy-sell-input buy-stock-amount">
-                            <p> of </p>
-                            <span id="stocks-buy-sell-text1">------</span>
-                            <p> for </p>
-                            <input disabled placeholder="0" type="number" value="0" min="0" class="stocks-buy-sell-input buy-stock-for">
-                            <p> EUR</p>
-                            <button disabled id="button-buy">Buy</button>
-                            <p id="owned-stocks-amount">Select row to buy/sell</p>
-                        </div>
-                        <div id="stocks-buy-sell-div2">
-                            <p>Sell </p>
-                            <input disabled placeholder="0" value="0" type="number" min="0" class="stocks-buy-sell-input sell-stock-amount">
-                            <p> of </p>
-                            <span id="stocks-buy-sell-text2">------</span>
-                            <p> for </p>
-                            <input disabled placeholder="0" type="number" value="0" min="0" class="stocks-buy-sell-input sell-stock-for">
-                            <p> EUR</p>
-                            <button disabled id="button-sell">Sell</button>
-                        </div>
-                        <div id="stocks-buy-sell-div3">
-                            <p id="test1"></p>
-                            <p id="test2"></p>
-                            <p id="test3"></p>
-                        </div>
-                    </div>
-                    <table id="stocks-table">
+                <div id="portfolio-table-wrapper">
+                    <table id="portfolio-table">
                         <tbody>
-                            <tr>
+                            <tr header="true">
                                 <td>Name</td>
                                 <td>Price</td>
-                                <td>Description</td>
-                                <td>Volume</td>
-                                <td>Market cap</td>
-                                <td>Revenue</td>
+                                <td class="description">Description</td>
+                                <td class="change">Change</td>
+                                <td>Amount</td>
+                                <td>Total value</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
+            <div class="nav-content buysell hidden">
+                    <div id="stocks-table-wrapper">
+                        <table id="stocks-table">
+                            <tbody>
+                                <tr header="true">
+                                    <td>Name</td>
+                                    <td>Price</td>
+                                    <td class="description">Description</td>
+                                    <td>Volume</td>
+                                    <td>Market cap</td>
+                                    <td>Revenue</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+            </div>
             <div class="nav-content help hidden">
-                <p>ketvirtas nav</p>
+                <div class="options-tabs">
+                    <p>Enable light mode</p>
+                    <input id="light-mode-switch" type="checkbox">
+                </div>
+                <!--<div class="options-tabs">
+                    <button>Reset</button>
+                </div>-->
             </div>
         </div>
         <div id="balance-container">
             <p id="money-balance"></p>
             <span id="currency-balance">EUR</span>
         </div>
+        <!--buy dialog-->
+        <div class="dialog-background dialog-hidden" dialog="buy-stock">
+            <div class="dialog-container">
+                <div id="buy-stock-dialog-navigation-container">
+                    <button class="buy active-dialog-nav-button">Buy</button>
+                    <button class="limit-order">Limit order</button>
+                    <button class="sell">Sell</button>
+                </div>
+                <div class="buy-stock-dialog-content buy">
+                    <p class="dialog-stock-name"></p>
+                    <p class="dialog-stock-price"></p>
+                    <div class="dialog-price-graph"></div>
+                    <div class="dialog-buttons">
+                        <button class="dialog-button" id="buy-stocks-button">Buy</button>
+                        <input placeholder="0" value="0" type="number" min="0" step="0.01" class="buy-stock-dialog-input buy-stock-amount">
+                        <p class="dialog-stock-name"></p>
+                        <p> for </p>
+                        <input placeholder="0" type="number" value="0" min="0" step="0.1" class="buy-stock-dialog-input buy-stock-for">
+                    </div>
+                </div>
+                <div class="buy-stock-dialog-content limit-order hidden">
+                    <div id="limit-order-container">
+                        <input placeholder="amount" type="number" min="0" step="0.01" id="limit-order-amount-input" class="buy-stock-dialog-input">
+                        <input placeholder="price" type="number" min="0" step="0.01" id="limit-order-price-input" class="buy-stock-dialog-input">
+                        <button class="dialog-button" id="limit-order-sell">Sell</button>
+                        <button class="dialog-button" id="limit-order-buy">Buy</button>
+                    </div>
+                </div>
+                <div class="buy-stock-dialog-content sell hidden">
+                    <p class="dialog-stock-name"></p>
+                    <div class="dialog-stock-price"></div>
+                    
+                    <div class="dialog-buttons">
+                        <button class="dialog-button" id="sell-stocks-button">Sell</button>
+                        <input placeholder="0" value="0" type="number" min="0" step="0.01" class="buy-stock-dialog-input sell-stock-amount">
+                        <p class="dialog-stock-name"></p>
+                        <p> for </p>
+                        <input placeholder="0" type="number" value="0" min="0" step="0.1" class="buy-stock-dialog-input sell-stock-for">
+                    </div>
+                    <button class="dialog-button" id="sell-all-stocks-button">Sell all</button>
+                </div>
+            </div>
+        </div>
+        <!--buy dialog-->
     </body>
     <script type="module" src="./index.js"></script>
 </html>
