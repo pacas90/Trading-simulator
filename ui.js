@@ -20,8 +20,6 @@ export class BuyDialog {
 
         // this.stockSellPriceElement = document.querySelector('.buy-stock-dialog-content.sell > .dialog-stock-price');
 
-        // this.dialogBg = document.querySelector('.dialog-background[dialog=buy-stock]');
-        // this.dialogContainer = this.dialogBg.querySelector('.dialog-container');
 
          this.buyStockForAmountInput = document.querySelector('#buy-amount-input');
          this.buyStockForInput = document.querySelector("#buy-price-input");
