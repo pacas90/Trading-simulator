@@ -1,48 +1,27 @@
 import { User } from "./user.js";
 import { Broker } from "./stock.js";
 import { GlobalStockList } from "./stock.js";
-import { BuyDialog } from "./ui.js";
+import { BuyDialog, RecentTransactions} from "./ui.js";
+import { Order } from "./stock.js";
+import { orderType } from "./stock.js";
+
+
 const user = new User();
 const stockList = new GlobalStockList();
 const broker = new Broker();
-//broker.marketOrderSell(stockList.getStock(0).name,0.05);
-/* broker.marketOrderBuy(stockList.getStock(0).name,10);
-broker.marketOrderBuy(stockList.getStock(1).name,5);
-broker.marketOrderSell(stockList.getStock(2).name,0.5533333333333333);
-user.printStockList(); */
 
-//sukursiu siandien dar jeigu spesiu mygtuku buy/sell bet neprizadu ar spesiu
-
-//dar del mygtuku, tai paciu akciju selectiona
-//ten reiktu kad generuotu is saraso mygtuku sarasa kazkaip, ir pagal mygtuko value tada galetume paduot kokia akcija Perka 
-
-
-//as tai turiu ideja tokia: padaryt lentele, realiai unlimited dydzio, kuri dideja priklausant kiek mes norim stocksu pardavient
-//ir tenais pasirinkus kazkuria tipo su ja kazka daryt, pirkt parduot ir taip toliau
-
-//jo gerai ir tada realiai global kazkoki value pakeicia ten currentStockName ir pagal tai paspaudus buy galetu orentuotis tada
-
-
-
-//-----------------------------------------------------------------
-// kintamieji kuriuos reikes nusettinti kad rodytu interfeise pirmam tabe:
-//const totalAccValue = document.querySelector('#total-account-value'); //bendra suma acccounto
-const todaysChangeValue = document.querySelector('#todays-change-value'); //kiek per siandien pasikeite kainos
-const todaysChangePercentage = document.querySelector('#todays-change-percentage'); //tas pats, tik procentais
-// ----------------------------------------------------------------
-// reikia padaryti kad addEventListener() onpageload ar kazka tokio, kad is kazkur paimtu ir
-// kazkiek stocku pridetu i pirkimo/pardavimo lentele su sita funkcija:
-// addStockToTable(name, price, description, volume, marketCap, revenue)
-// tuomet dar reiktu padaryti, kad kas kazkiek laiko atnaujintu kainas lenteleje su sita funkcija:
-// function updateStocksTable(name, price, description, volume, marketCap, revenue)
-// apacioj cia yra aprasyti du event'ai button clicku (buy ir sell),
-// reik aprasyti logika, kas buna kai nusiperki ar parduodi ir issaugot viska localStorage
-
-//stockList.fetchStockInfo(); // API UPDATAM 
-//stockList.loadStockInfo();
-//console.log(localStorage.getItem("lastStockInfo"));
 
 stockList.loadStockInfo();
+stockList.updateHistoricalData();
+
+stockList.addStocksFromList();
+user.putStocksToPortfolioTable();
+user.putLimitOrdersToTable();
+
+const recentTransactions = new RecentTransactions();
+
+
+
 
 
 // pagr. navigacijos buttonai
@@ -57,48 +36,53 @@ navButtons.forEach(button => {
         }
         button.classList.add('nav-bar-buttons-active');
         document.querySelector(`.nav-content.${button.getAttribute('value')}`).classList.remove('hidden');
-    });
-});
-//buy dialogo navigacijos buttonai
-const buyDialogNavButtons = document.querySelectorAll('#buy-stock-dialog-navigation-container button');
-//console.log(buyDialogNavButtons.getAttribute('id'));
-const buyDialogContent = document.querySelectorAll('.buy-stock-dialog-content');
-buyDialogNavButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        for(let i = 0; i < buyDialogNavButtons.length; i++) {
-            buyDialogNavButtons[i].classList.remove('active-dialog-nav-button');
-            buyDialogContent[i].classList.add('hidden');
-        }
-        button.classList.add('active-dialog-nav-button');
-        document.querySelector(`.buy-stock-dialog-content.${button.classList[0]}`).classList.remove('hidden');
+        content[0].scrollTop = 0;
     });
 });
 
-// sukuria nauja stock'o lenteles skyriu buy/sell tab'e
 
-stockList.addStocksFromList();
-//user.clearUserStocks();
-//broker.marketOrderBuy("AAPL",30);
-//user.addBalance(200);
-//broker.LimitOrderBuy("AAPL",20,3);
-  //broker.LimitOrderSell("AAPL",30,1);
-  //broker.LimitOrderSell("AAPL",30,1);
-  //broker.LimitOrderSell("AAPL",30,1);
+// portfolio/stocks table header clickai kad sortintu
+const portfolioHeaderRow = document.querySelector('#portfolio-table > tbody > tr[header=true]');
+const portfolioCells = portfolioHeaderRow.querySelectorAll('td');
+const stocksHeaderRow = document.querySelector('#stocks-table > tbody > tr[header=true]');
+const stocksCells = stocksHeaderRow.querySelectorAll('td');
+const headerRows = [portfolioHeaderRow, stocksHeaderRow];
+const tableTbody = [document.querySelector('#portfolio-table > tbody'), document.querySelector('#stocks-table > tbody')];
+const cells = [portfolioCells, stocksCells]; //header cells
+const sortArrows = document.querySelectorAll('.table-sort-arrow');
+
+// sort both tables
+for (let i = 0; i < cells.length; i++) {
+    // for each in each table
+    cells[i].forEach(cell => {
+        // header cell click event
+        cell.addEventListener('click', () => {
+            if (cell.hasAttribute('sort')) {
+                //arrow change direction
+                if (cell.getAttribute('sort') == 'asc') {
+                    cell.setAttribute('sort', 'desc');
+                    sortArrows[i].classList = 'table-sort-arrow material-symbols-outlined sort-arrow-desc';
+                }
+                else if (cell.getAttribute('sort') == 'desc') {
+                    cell.setAttribute('sort', 'asc');
+                    sortArrows[i].classList = 'table-sort-arrow material-symbols-outlined sort-arrow-asc';
+                }
+            }
+            else {
+                for(let j = 0; j < cells[i].length; j++) {
+                    cells[i][j].removeAttribute('sort');
+                    console.log(cells[1][1].textContent);
+                }
+                cell.setAttribute('sort', 'desc');
+                cell.querySelector('div').append(sortArrows[i]);
+                sortArrows[i].classList = 'table-sort-arrow material-symbols-outlined sort-arrow-desc';
+            }
+            user.sortTable(headerRows[i], tableTbody[i]);
+        });
+    });
+}
 
 
-//stockList.UpdateStockPrice("AAPL",250);
-//console.log(stockList.getStock(0).name+" "+ stockList.getStock(0).price);
-//broker.UpdateLimitOrders();
-//user.printOrdersToConsole();
-//console.log("----=-=-=-=-=-=");
-//user.printStockList();
-user.putStocksToPortfolioTable();
-/*
-addStockToTable("test2", 2, "a", 5, 5, 5);
-addStockToTable("test3", 3, "a", 5, 5, 5);
-addStockToTable("test4", 4, "a", 5, 5, 5);
-addStockToTable("test5", 5, "a", 5, 5, 5);
-addStockToTable("test6", 6, "a", 5, 5, 5);*/
 
 
 
@@ -117,148 +101,139 @@ const stocksSellStockForInput = document.querySelector('.stocks-buy-sell-input.s
 const stocksSellStockAmountInput = document.querySelector('.stocks-buy-sell-input.sell-stock-amount'); 
 
 const ownedStocksAmount = document.querySelector('#owned-stocks-amount');
-/*
-function disableInputs(flag) {
-    if (flag == true) {
-        stocksBuyText1.textContent = '------';
-        stocksSellText1.textContent = '------'; 
-        stocksBuyStockForInput.value = 0;
-        stocksBuyStockAmountInput.value = 0;
-        stocksSellStockForInput.value = 0;
-        stocksSellStockAmountInput.value = 0;
-        stocksBuyStockForInput.setAttribute("disabled", '');
-        stocksBuyStockAmountInput.setAttribute("disabled", '');
-        stocksSellStockForInput.setAttribute("disabled", '');
-        stocksSellStockAmountInput.setAttribute("disabled", '');
-        stocksBuyButton.setAttribute("disabled", '');
-        stocksSellButton.setAttribute("disabled", '');
-        //ownedStocksAmount.classList.add('hidden');
-        ownedStocksAmount.textContent = 'Select row to buy/sell';
-    }
-    else {
-        stocksBuyStockForInput.removeAttribute("disabled");
-        stocksBuyStockAmountInput.removeAttribute("disabled");
-        stocksSellStockForInput.removeAttribute("disabled");
-        stocksSellStockAmountInput.removeAttribute("disabled");
-        stocksBuyButton.removeAttribute("disabled");
-        stocksSellButton.removeAttribute("disabled");
-        //ownedStocksAmount.classList.remove('hidden');
-    }
-}
-
-function updateStocksTotalValue() {
-    stocksRows.forEach(row => {
-    if (row.classList.contains('stocks-row-active')) {
-        var amount = user.getStockAmount(user.getStockIndexByName(row.getAttribute('name')));
-        if (amount != undefined) {
-            ownedStocksAmount.innerHTML = 
-                `You have ${amount.toFixed(5)}
-                (${(amount * broker.findStockByName(row.getAttribute('name')).price).toFixed(2)} 
-                <span style=color:var(--text-accent);margin:0;>EUR</span>)`;
-        }
-        else {
-            ownedStocksAmount.innerHTML = '';
-        }
-    }
-    }); 
-}
 
 
-*/
+
+
+
 var buyDialog = new BuyDialog();
 buyDialog.init();
+
+import { argbFromHex, themeFromSourceColor, applyTheme } from 'https://esm.sh/@material/material-color-utilities';
+
+// Get the theme from a hex color
+const theme = themeFromSourceColor(argbFromHex('#6f528a'), [
+  {
+    name: "custom-1",
+    value: argbFromHex("#6f528a"),
+    blend: true,
+  },
+]);
+
+
+applyTheme(theme, {target: document.body, dark: false});
 const lightModeSwitch = document.querySelector('#light-mode-switch');
 lightModeSwitch.addEventListener('input', () => {
     if (lightModeSwitch.checked) {
         document.body.classList = '';
         document.body.classList.add('light-theme');
+        applyTheme(theme, {target: document.body, dark: false});
     }
     else {
         document.body.classList = '';
         document.body.classList.add('dark-theme');
-    }
-});
-
-/************************* SENAS BUDAS PIRKIMO CIA DEL VISA KO ***************************/
-/*
-var contains = false;
-stocksRows.forEach(row => {
-    if (!row.isEqualNode(stocksRows[0])) {
-        row.addEventListener('click', () => {
-            stocksRows.forEach(row2 => {
-                if (!row2.isEqualNode(row)) {
-                    row2.classList.remove('stocks-row-active');
-                }
-                disableInputs(true);
-            })
-            row.classList.toggle('stocks-row-active');
-            if (row.classList.contains('stocks-row-active')) {
-                stocksBuyText1.textContent = `${row.getAttribute('name')}`;
-                stocksSellText1.textContent = `${row.getAttribute('name')}`; 
-                updateStocksTotalValue();
-                disableInputs(false);
-            }
-        });
+        applyTheme(theme, {target: document.body, dark: true});
     }
 });
 
 
-// buy/sell inputu valdymas, kad ivedus i viena, pasikeistu kitas ir atvirksciai
-//buy
-stocksBuyStockAmountInput.addEventListener('input', updateBuyStockAmountInput);
-stocksBuyStockForInput.addEventListener('input', updateBuyStockForInput);	
-// sell
-stocksSellStockAmountInput.addEventListener('input', updateSellStockAmountInput);
-stocksSellStockForInput.addEventListener('input', updateSellStockForInput);
-
-function updateBuyStockAmountInput() {
-    const name = stocksBuyText1.textContent;
-    const price = broker.findStockByName(name).price;
-    stocksBuyStockForInput.value = (stocksBuyStockAmountInput.value * price).toFixed(2);
-}
-function updateBuyStockForInput() {    
-    const name = stocksBuyText1.textContent;
-    const price = broker.findStockByName(name).price;
-    stocksBuyStockAmountInput.value = (stocksBuyStockForInput.value / price).toFixed(2);
-}
-function updateSellStockAmountInput() {
-    const name = stocksSellText1.textContent;
-    const price = broker.findStockByName(name).price;
-    stocksSellStockForInput.value = (stocksSellStockAmountInput.value * price).toFixed(2);
-}
-function updateSellStockForInput() {
-    const name = stocksSellText1.textContent;
-    const price = broker.findStockByName(name).price;
-    stocksSellStockAmountInput.value = (stocksSellStockForInput.value / price).toFixed(2);
-}
+import { Curve } from './curve.js';
 
 
 
-// cia pirkimas stocku
-stocksBuyButton.addEventListener('click', () => {
-    const name = stocksBuyText1.textContent;
-    if (user.getBalance() >= stocksBuyStockForInput.value) {
-        broker.marketOrderBuy(name,stocksBuyStockForInput.value);
-        console.log(`Bought ${name} ${stocksBuyStockAmountInput.value} for ${stocksBuyStockForInput.value} EUR`);
+var myStocks = JSON.parse(localStorage.getItem('stockList'));
+var myStocksNames = [];
+let prices = [];
+for (let j = 0; j < 90; j++) {
+    prices[j] = 0;
+}
+if (myStocks != null) {
+for (let i = 0; i < myStocks.length; i++)
+    {
+        let name = myStocks[i].name;
+        let hist = JSON.parse(localStorage.getItem(`${name}_hist`));
+        //console.log(hist);
+        for (let j = 0; j < 90; j++) 
+        {
+            prices[j] += parseFloat(hist[j].close)*user.getStockAmount(user.getStockIndexByName(name));
+        }
     }
-    else {
-        console.log(`BALANCE INSUFFICIENT (${user.getBalance()} EUR < ${stocksBuyStockForInput.value})`);
-    }
-    user.updatePortfolio()
-    updateStocksTotalValue();
-});
-stocksSellButton.addEventListener('click', () => {
-    const name = stocksSellText1.textContent;
-    if (user.getStockAmount(user.getStockIndexByName(name)) >= stocksSellStockAmountInput.value) {
-        broker.marketOrderSell(name,stocksSellStockAmountInput.value);
-        console.log(`Sold ${name} ${stocksSellStockAmountInput.value} for ${stocksSellStockForInput.value} EUR`);
-    }
-    user.updatePortfolio();
-    updateStocksTotalValue();
-});
-*/
+}
+
+//  curve.drawCurve([
+//      {x: 0, y: prices[30]}, {x: 1, y: prices[29]}, {x: 2, y: prices[28]}, {x: 3, y: prices[27]}, {x: 4, y: prices[26]},
+//      {x: 5, y: prices[25]}, {x: 6, y: prices[24]}, {x: 7, y: prices[23]}, {x: 8, y: prices[22]}, {x: 9, y: prices[21]},
+//     {x: 10, y: prices[20]}, {x: 11, y: prices[19]}, {x: 12, y: prices[18]}, {x: 13, y: prices[17]}, {x: 14, y: prices[16]},
+//     {x: 15, y: prices[15]}, {x: 16, y: prices[14]}, {x: 17, y: prices[13]}, {x: 18, y: prices[12]}, {x: 19, y: prices[11]},
+//     {x: 20, y: prices[10]}, {x: 21, y: prices[9]}, {x: 22, y: prices[8]}, {x: 23, y: prices[7]}, {x: 24, y: prices[6]},
+//     {x: 25, y: prices[5]}, {x: 26, y: prices[4]}, {x: 27, y: prices[3]}, {x: 28, y: prices[2]}, {x: 29, y: prices[1]},
+//     {x: 30, y: prices[0]}
+//   ]
+//   );
 
 
-//portfolio table
-const portfolioTable = document.querySelector('#portfolio-table > tbody');
 
+const todaysChangeValue = document.querySelector('#todays-change-value'); //kiek per siandien pasikeite kainos
+const todaysChangePercentage = document.querySelector('#todays-change-percentage'); //tas pats, tik procentais
+
+let change = prices[0]-prices[1];
+let changeColor = change < 0 ? "var(--text-red)" : "var(--text-green)";
+todaysChangeValue.innerHTML = `${change.toFixed(2)} USD`;
+todaysChangeValue.style.color = changeColor;
+
+let changePercentage = ((prices[0] - prices[1]) / prices[0]) * 100;
+todaysChangePercentage.innerHTML = `(${changePercentage.toFixed(2)}%)`;
+todaysChangePercentage.style.color = changeColor;
+
+
+
+
+
+
+//                  width; height;  curve color;       grid color;  area below curve colour;    container
+// var buyCurve = new Curve(600,300,document.querySelector('#buy-curve-wrapper'));
+
+// buyCurve.drawCurve(
+//     prices.slice(0, 31).map((price, index) => ({ x: 30 - index, y: Math.round(price) }))
+//   );
+
+
+
+
+
+
+const curveContainer = document.querySelector('#dashboard-graph-container > .curve-wrapper');
+
+var curve = new Curve(600,300, curveContainer);
+
+
+// pagrindinis grafikas, laiko pasirinkimas
+
+curve.drawCurve(
+    prices.slice(0, 30).map((price, index) => ({ x: 30 - index, y: Math.round(price) }))
+);
+
+const timeChips = document.querySelectorAll('#main-graph-time-chips > md-filter-chip');
+for (let i = 0; i < timeChips.length; i++) {
+    timeChips[i].addEventListener('click', () => {
+        for (let j = 0; j < timeChips.length; j++) {
+            timeChips[j].selected = false;
+        }
+        timeChips[i].selected = true;
+        let time = '';
+        if (timeChips[i].getAttribute('time') == '3 months') {
+            time = 90;
+        }
+        else if (timeChips[i].getAttribute('time') == '30 days') {
+            time = 30;
+        }
+        else if (timeChips[i].getAttribute('time') == '7 days') {
+            time = 7;
+        }
+        curve.clear();
+        curve.drawCurve(
+            prices.slice(0, time).map((price, index) => ({ x: time - index, y: Math.round(price) }))
+        );
+        
+    });
+}

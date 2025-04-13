@@ -24,11 +24,8 @@ export class User
         else
         {
             this.balance = parseFloat(storedBalance);
-            /*var Transactions = new RecentTransactions();
-            for (var i = 0; i < Transactions.transactions.length; i++) {
-                Transactions.putInTable(Transactions.transactions[i]);
-            }*/
-           // kazkodel blet neleidzia issaugot, meta error kad user undefined
+           
+           
         }
         document.querySelector("#money-balance").textContent = `${this.balance.toFixed(2)} `;
         this.stocklist = JSON.parse(localStorage.getItem("stockList")) || [];
@@ -136,20 +133,23 @@ export class User
         localStorage.setItem("stockList",JSON.stringify(this.stocklist));
         localStorage.setItem("stockAmounts",JSON.stringify(this.stockAmounts));
     }
-    // prideda limit uzsakyma
-    addLimitOrder(order){
+    // prideda  uzsakyma
+    addOrder(order){
         this.orderList.push(order);
         localStorage.setItem("orderList",JSON.stringify(this.orderList));
     }
-    // istrina limit uzsakyma
-    removeLimitOrder(order){
+    // istrina  uzsakyma
+    removeOrder(order){
+        //console.log("order name "+ order.name);
         console.log(this.getOrderIndex(order)+" " + order);
         this.orderList.splice(this.getOrderIndex(order),1);
         localStorage.setItem("orderList",JSON.stringify(this.orderList));
     }
     getOrderIndex(order){
         for(let i=0;i < this.orderList.length;i++){
-            if(order.name==this.orderList[i].name&& order.price==this.orderList[i].price&&
+            //console.log(order.stockName);
+            if(order.stockName==this.orderList[i].stockName&& 
+                order.price==this.orderList[i].price&&
                 order.amount==this.orderList[i].amount && order.orderType==this.orderList[i].orderType){
                 return i;
             }
@@ -201,6 +201,14 @@ export class User
         localStorage.setItem("stockList",JSON.stringify(this.stocklist));
         localStorage.setItem("stockAmounts",JSON.stringify(this.stockAmounts));
     }
+    clearUserOrders(){
+        this.orderList = JSON.parse(localStorage.getItem("orderList")) || [];
+        for(let i = 0;i<this.orderList.length;i++){
+            this.orderList.splice(i);
+            i--;
+        }
+        localStorage.setItem("orderList",JSON.stringify(this.orderList));
+    }
     //spausdina portfelio akciju sarasa i koncole
     printStockList(){
         for(let i =0;i<this.stocklist.length;i++){
@@ -224,6 +232,9 @@ export class User
         row.setAttribute("name", name);
         for (let i = 0; i < data.length; i++) {
             const cell = document.createElement('td');
+            if (i == 0) {
+                cell.classList.add('stock-name');
+            }
             if (i == 2) {
                 cell.classList.add('description');
             }
@@ -231,7 +242,7 @@ export class User
                 cell.classList.add('change');
             }
             if (i == 5) {
-                cell.innerHTML = `${data[i]}<span style='margin-left: 5px;color: var(--text-accent)'>EUR</span>`;
+                cell.innerHTML = `${data[i]}<span style='font-style:italic;font-weight: 400;margin-left: 5px;color: var(--primary)'>USD</span>`;
             }
             else {
                 cell.textContent = data[i];
@@ -241,6 +252,7 @@ export class User
         }
         row.classList.add('portfolio-table-row');
         table.appendChild(row)
+        //this.sortPortfolio();
     }
     putStocksToPortfolioTable() {
         this.stocklist = JSON.parse(localStorage.getItem("stockList")) || [];
@@ -263,8 +275,12 @@ export class User
             totalVal += +(this.stockAmounts[i] * broker.findStockByName(this.stocklist[i].name).price).toFixed(2);
         }
         const totalAccValue = document.querySelector('#total-account-value');
-        totalAccValue.innerHTML = `${totalVal} <span style='margin-left: 5px;
-    color: var(--text-accent)'>EUR</span>`;
+        totalAccValue.innerHTML = `${totalVal.toFixed(2)} <span style='margin-left: 5px;
+    color: var(--text-accent)'>USD</span>`;
+
+        const portfolioRows = document.querySelector('#portfolio-table > tbody')
+        const portfolioHeaderRow = document.querySelector('#portfolio-table > tbody > tr[header=true]');
+        this.sortTable(portfolioHeaderRow, portfolioRows);  
     }
     updatePortfolio() {
         const row = document.querySelectorAll('.portfolio-table-row');
@@ -274,12 +290,72 @@ export class User
         }
         this.putStocksToPortfolioTable();
     }
-    // pirkimo istorijos saugojimas
-    recentTransactionsAdd(transaction) {
-        var all = localStorage.getItem('recentTransactions');
-        all += transaction;
-        localStorage.setItem('recentTransactions', all);
+    //sorts portfolio by selected column
+    sortTable(headerRow, tbody) {
+        let indexToSort = null;
+        let ascending = null;
+        //console.log(headerRow);
+        for (let i = 0; i < headerRow.children.length; i++) {
+            if (headerRow.children[i].hasAttribute('sort')) {
+                indexToSort = i;
+                ascending = headerRow.children[i].getAttribute('sort') == 'asc' ? true : false;
+            }
+        }
+        const rows = Array.from(tbody.rows);//Array.from(tbody.rows);
+        rows.shift(); //dont sort header
+
+        rows.sort((rowA, rowB) => {
+            const cellA = rowA.cells[indexToSort].textContent.trim();
+            const cellB = rowB.cells[indexToSort].textContent.trim();
+            const numA = parseFloat(cellA.replace(/[^0-9.-]/g, '')) || NaN;
+            const numB = parseFloat(cellB.replace(/[^0-9.-]/g, '')) || NaN;
+            if (!isNaN(numA) && !isNaN(numB)) {
+                return ascending ? numA - numB : numB - numA;
+            } 
+            else {
+                return ascending ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
+            }
+        });
+        tbody.append(...rows);
+        console.log(headerRow.parentElement.parentElement.getAttribute('id')+' table sorted by column ' + indexToSort);
     }
+    // pirkimo istorijos saugojimas
+    
+
+
+    updateLimitOrderTable() {
+        const row = document.querySelectorAll('.limit-orders-table-row');
+        //clear table
+        for (let i = 0; i < row.length; i++) {
+            row[i].remove();
+        }
+        this.putLimitOrdersToTable();
+
+    }
+
+    putLimitOrdersToTable() {
+        let orders = JSON.parse(localStorage.getItem('orderList'));
+        if (orders != null) {
+            for (let i = 0; i < orders.length; i++) {
+                this.fillLimitOrdersTable(orders[i].stockName, orders[i].price, orders[i].amount, orders[i].orderType);
+            }
+        }
+    
+    }
+    fillLimitOrdersTable(name, price, amount, date) {
+        var data = [name, price, amount, date];
+        const table = document.querySelector('#limit-orders-table > tbody');
+        const row = document.createElement('tr');
+        row.setAttribute("name", name);
+        for (let i = 0; i < data.length; i++) {
+            const cell = document.createElement('td');
+            cell.textContent = data[i];
+            row.appendChild(cell);
+            
+        }
+        row.classList.add('limit-orders-table-row');
+        table.appendChild(row)
+    }    
 }   
 
 

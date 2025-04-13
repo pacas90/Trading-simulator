@@ -1,9 +1,10 @@
 /***** issokstanti buy lentele *****/
-import { Broker } from "./stock.js";
+import { Broker, GlobalStockList } from "./stock.js";
 import { User } from "./user.js";
+import {Curve} from "./curve.js";
 
 const user = new User();
-
+const globalStockList = new GlobalStockList();
 const broker = new Broker();
 
 export class BuyDialog {
@@ -11,54 +12,92 @@ export class BuyDialog {
         this.stockName = undefined;
         this.stockPrice = 0; 
 
-        this.stockNameElement = document.querySelectorAll(/*'.buy-stock-dialog-content >*/'.dialog-stock-name');
-        this.stockBuyPriceElement = document.querySelector('.buy-stock-dialog-content.buy > .dialog-stock-price');
-        this.stockSellPriceElement = document.querySelector('.buy-stock-dialog-content.sell > .dialog-stock-price');
+        this.dialog = document.querySelector('#buy-sell-dialog');
+        this.dialog.returnValue
+        this.stockNameElement = document.querySelectorAll('.stock-name-element');
+        this.stockBuyPriceElement = document.querySelector('#stock-buy-price-element');
+        this.stockSellPriceElement = document.querySelector('#stock-sell-price-element');
 
-        this.dialogBg = document.querySelector('.dialog-background[dialog=buy-stock]');
-        this.dialogContainer = this.dialogBg.querySelector('.dialog-container');
+        // this.stockSellPriceElement = document.querySelector('.buy-stock-dialog-content.sell > .dialog-stock-price');
 
-        this.buyStockForAmountInput = document.querySelector('.buy-stock-dialog-input.buy-stock-amount');
-        this.buyStockForInput = document.querySelector('.buy-stock-dialog-input.buy-stock-for');
-        this.sellStockForAmountInput = document.querySelector('.buy-stock-dialog-input.sell-stock-amount');
-        this.sellStockForInput = document.querySelector('.buy-stock-dialog-input.sell-stock-for');
+        // this.dialogBg = document.querySelector('.dialog-background[dialog=buy-stock]');
+        // this.dialogContainer = this.dialogBg.querySelector('.dialog-container');
+
+         this.buyStockForAmountInput = document.querySelector('#buy-amount-input');
+         this.buyStockForInput = document.querySelector("#buy-price-input");
+         this.sellStockForAmountInput = document.querySelector('#sell-amount-input');
+         this.sellStockForInput = document.querySelector('#sell-price-input');
        
-        this.updateBuyStockAmountInput = this.updateBuyStockAmountInput.bind(this);
-        this.updateBuyStockForInput = this.updateBuyStockForInput.bind(this);
-        this.updateSellStockAmountInput = this.updateSellStockAmountInput.bind(this);
-        this.updateSellStockForInput = this.updateSellStockForInput.bind(this);
+         this.updateBuyStockAmountInput = this.updateBuyStockAmountInput.bind(this);
+         this.updateBuyStockForInput = this.updateBuyStockForInput.bind(this);
+         this.updateSellStockAmountInput = this.updateSellStockAmountInput.bind(this);
+         this.updateSellStockForInput = this.updateSellStockForInput.bind(this);
 
-        this.buyButton = document.querySelector('#buy-stocks-button');
-        this.sellButton = document.querySelector('#sell-stocks-button');
-        this.sellAllButton = document.querySelector('#sell-all-stocks-button');
+         this.buyButton = document.querySelector('#buy-button');
+         this.sellButton = document.querySelector('#sell-button');
+         this.sellAllButton = document.querySelector('#sell-all-button');
 
         this.RecentTransactions;
 
         //-------- limit order
-        this.limitOrderSellButton = document.querySelector('#limit-order-sell');
-        this.limitOrderBuyButton = document.querySelector('#limit-order-buy');
-        this.limitOrderAmountInput = document.querySelector('#limit-order-amount-input');
-        this.limitOrderPriceInput = document.querySelector('#limit-order-price-input');
+         this.limitOrderSellButton = document.querySelector('#limit-order-sell');
+         this.limitOrderBuyButton = document.querySelector('#limit-order-buy');
+         this.limitOrderAmountInput = document.querySelector('#limit-order-amount-input');
+         this.limitOrderPriceInput = document.querySelector('#limit-order-price-input');
+
+        // //short order
+         this.shortOrderAddButton = document.querySelector('#short-order-add');
+         this.shortOrderAmountInput = document.querySelector('#short-order-amount-input');
+        this.shortOrderPriceInput = document.querySelector('#short-order-price-input');
+
     }
     init() {
-        this.clickOutside();
+        const tabs = document.querySelector('md-tabs');
+        const panels = document.querySelectorAll('[role="tabpanel"]');
+        tabs.addEventListener('change', (e) => {
+            const selectedId = e.target.activeTab.id;
+            panels.forEach(panel => {
+                panel.hidden = panel.getAttribute('aria-labelledby') !== selectedId;
+            });
+        });
+        document.querySelector('#dialog-close-button').addEventListener('click', () => {
+            this.hide();
+        });
+        //show graph switch
+        document.querySelector('#show-graph-switch').addEventListener('change', () => {
+            document.querySelector('#buy-graph-container').classList.toggle('hidden');
+            this.dialog.classList.toggle('dialog-expand');
+        });
+
         this.stocksTableListeners();
         this.buyButtonListener();
         this.sellButtonListener();
         this.limitOrderButtonsListeners();
+        this.shortOrderButtonsListeners();
 
         this.RecentTransactions = new RecentTransactions();
 
         //fill values with stockName, price etc., event listeners for buy click
     }
     show() {
-        this.dialogBg.classList.remove('dialog-hidden');
-        
+        this.dialog.show();
     }
     hide() {
-        this.dialogBg.classList.add('dialog-hidden');
+        this.dialog.close();
+      
         this.clearInputs();
         //this.disableDynamicInputs();
+    }
+    shortOrderButtonsListeners() {
+        this.shortOrderAddButton.addEventListener('click', () => {
+           const amount = this.shortOrderAmountInput.value;
+        
+           const price = globalStockList.findStockByName(this.stockName).price;
+            if(amount != '') {
+                broker.ShortOrder(this.stockName, price, amount);
+                user.updateLimitOrderTable();
+            }
+        });
     }
     limitOrderButtonsListeners() {
         // const amount = this.limitOrderAmountInput.value;
@@ -69,6 +108,7 @@ export class BuyDialog {
         const price = this.limitOrderPriceInput.value;
             if(amount != '' && price != '') {
                 broker.LimitOrderSell(this.stockName, price, amount);
+                user.updateLimitOrderTable();
             }
         });
         this.limitOrderBuyButton.addEventListener('click', () => {
@@ -77,18 +117,11 @@ export class BuyDialog {
         const price = this.limitOrderPriceInput.value;
             if(amount != '' && price != '') {
                 broker.LimitOrderBuy(this.stockName, price, amount);
+                user.updateLimitOrderTable();
             }
         });
     }
 
-    //uzsidaro paspaudus uz lenteles
-    clickOutside() {
-        this.dialogBg.addEventListener('click', (e) => {
-            if(e.target == this.dialogBg) {
-                this.hide();
-            }
-        });
-    }
     enableDynamicInputs() {
         this.buyStockForAmountInput.addEventListener('input', this.updateBuyStockAmountInput);
         this.buyStockForInput.addEventListener('input', this.updateBuyStockForInput);
@@ -107,7 +140,7 @@ export class BuyDialog {
             return;
         }
         const price = broker.findStockByName(this.stockName).price;
-        this.buyStockForAmountInput.value = (this.buyStockForInput.value / price).toFixed(2);
+        this.buyStockForAmountInput.value = (this.buyStockForInput.value / price).toFixed(5);
     }
     updateSellStockAmountInput() {
         if(!this.stockName){
@@ -121,28 +154,52 @@ export class BuyDialog {
             return;
         }
         const price = broker.findStockByName(this.stockName).price;
-        this.sellStockForAmountInput.value = (this.sellStockForInput.value / price).toFixed(2);
+        this.sellStockForAmountInput.value = (this.sellStockForInput.value / price).toFixed(5);
     }
     buyButtonListener() {
-        this.buyButton.addEventListener('click', () => {;
+        this.buyButton.addEventListener('click', () => {
+            if (this.buyStockForInput.value == 0 && this.buyStockForAmountInput.value == 0) {
+                var notif = new Notification({
+                    icon: "close",
+                    text: `<p>Empty values!</p>`,
+                  });
+                  notif.show();
+                return;
+            }
             if (user.getBalance() >= this.buyStockForInput.value) {
                 broker.marketOrderBuy(this.stockName,this.buyStockForInput.value);
                 // prideda i pirkimu istorija
                 const date = new Date();
-                const transaction = {
-                    stockName: this.stockName,
-                    amountTraded: this.buyStockForAmountInput.value,
-                    balanceDiff: this.buyStockForInput.value,
-                    date: `${date.getFullYear()}-0${date.getMonth() + 1}-${date.getDate()}`
-                }
-                this.RecentTransactions.addToList(transaction);
-                this.RecentTransactions.putInTable(transaction);
+                // const transaction = {
+                //     stockName: this.stockName,
+                //     amountTraded: this.buyStockForAmountInput.value,
+                //     balanceDiff: this.buyStockForInput.value,
+                //     date: `${date.getFullYear()}-0${date.getMonth() + 1}-${date.getDate()}`
+                // }
+                this.RecentTransactions.addToList(this.stockName, this.buyStockForAmountInput.value, this.buyStockForInput.value,`${date.getFullYear()}-0${date.getMonth() + 1}-${date.getDate()}`);
+             //  this.RecentTransactions.putInTable(transaction);
                 this.updateSellStockInfo();
+                //show notification with info of buying
+                var notif = new Notification({
+                    icon: "check",
+                    text: `<p>You have bought ${this.buyStockForAmountInput.value}
+                            <span class='stock-name'>${this.stockName}</span>  
+                            for ${this.buyStockForInput.value} <span class='stock-name'>USD</span>!</p>`,
+                  });
+                  notif.show();
+                
                 //-----------------
-                console.log(`Bought ${this.stockName} ${this.buyStockForAmountInput.value} for ${this.buyStockForInput.value} EUR`);
+                console.log(user.getBalance());
+                console.log(`Bought ${this.stockName} ${this.buyStockForAmountInput.value} for ${this.buyStockForInput.value} USD`);
             }
             else {
-                console.log(`BALANCE INSUFFICIENT (${user.getBalance()} EUR < ${this.buyStockForInput.value})`);
+                console.log(`BALANCE INSUFFICIENT (${user.getBalance()} USD < ${this.buyStockForInput.value})`);
+                var notif = new Notification({
+                    icon: "priority_high",
+                    text: `<p>Insufficient funds! You have only ${user.getBalance().toFixed(2)} 
+                            <span class='stock-name'>USD</span>!</p>`,
+                  });
+                  notif.show();
             }
             user.updatePortfolio()
             this.stocksTableListeners();
@@ -151,23 +208,53 @@ export class BuyDialog {
     }
     sellButtonListener() {
         this.sellButton.addEventListener('click', () => {
+            if (this.sellStockForInput.value == 0 && this.sellStockForAmountInput.value == 0) {
+                var notif = new Notification({
+                    icon: "close",
+                    text: `<p>Empty values!</p>`,
+                  });
+                  notif.show();
+                return;
+            }
             if (user.getStockAmount(user.getStockIndexByName(this.stockName)) >= this.sellStockForAmountInput.value) {
                 broker.marketOrderSell(this.stockName,this.sellStockForAmountInput.value);
-                console.log(`Sold ${this.stockName} ${this.sellStockForAmountInput.value} for ${this.sellStockForInput.value} EUR`);
+                console.log(`Sold ${this.stockName} ${this.sellStockForAmountInput.value} for ${this.sellStockForInput.value} USD`);
                 
                 const date = new Date();
-                const transaction = {
-                    stockName: this.stockName,
-                    amountTraded: -this.sellStockForAmountInput.value,
-                    balanceDiff: this.sellStockForInput.value,
-                    date: `${date.getFullYear()}-0${date.getMonth() + 1}-${date.getDate()}`
-                }
-                this.RecentTransactions.addToList(transaction);
-                this.RecentTransactions.putInTable(transaction);
+                // const transaction = {
+                //     stockName: this.stockName,
+                //     amountTraded: -this.sellStockForAmountInput.value,
+                //     balanceDiff: this.sellStockForInput.value,
+                //     date: `${date.getFullYear()}-0${date.getMonth() + 1}-${date.getDate()}`
+                // }
+                this.RecentTransactions.addToList(this.stockName, -this.sellStockForAmountInput.value, this.sellStockForInput.value, `${date.getFullYear()}-0${date.getMonth() + 1}-${date.getDate()}`);
+              //  this.RecentTransactions.putInTable(transaction);
                 this.updateSellStockInfo();
+                // show notif with sell info
+                var notif = new Notification({
+                    icon: "check",
+                    text: `<p>You have sold ${this.sellStockForAmountInput.value}
+                            <span class='stock-name'>${this.stockName}</span>  
+                            for ${this.sellStockForInput.value} <span class='stock-name'>USD</span>!</p>`,
+                  });
+                  notif.show();
             }
             else {
                 console.log('Insufficient stocks amount');
+                let val = user.getStockAmount(user.getStockIndexByName(this.stockName));
+                if (val == undefined) {
+                    val = 0;
+                }
+                else {
+                    val = user.getStockAmount(user.getStockIndexByName(this.stockName)).toFixed(5);
+                }
+                var notif = new Notification({
+                    icon: "priority_high",
+                    text: `<p>Insufficient stocks! You have only
+                            ${val}
+                            of <span class='stock-name'>${this.stockName}</span>!</p>`,
+                  });
+                  notif.show();
             }
             user.updatePortfolio();
             this.stocksTableListeners();
@@ -179,18 +266,25 @@ export class BuyDialog {
             if (amount > 0) {
                 broker.marketOrderSell(this.stockName, amount);
                 const date = new Date();
-                const transaction = {
-                    stockName: this.stockName,
-                    amountTraded: -amount,
-                    balanceDiff: amount * this.stockPrice,
-                    date: `${date.getFullYear()}-0${date.getMonth() + 1}-${date.getDate()}`
-                }
-                this.RecentTransactions.addToList(transaction);
-                this.RecentTransactions.putInTable(transaction);
+                // const transaction = {
+                //     stockName: this.stockName,
+                //     amountTraded: -amount,
+                //     balanceDiff: amount * this.stockPrice,
+                //     date: `${date.getFullYear()}-0${date.getMonth() + 1}-${date.getDate()}`
+                // }
+                this.RecentTransactions.addToList(this.stockName, -amount, amount * this.stockPrice, `${date.getFullYear()}-0${date.getMonth() + 1}-${date.getDate()}`);
+               // this.RecentTransactions.putInTable(transaction);
                 this.updateSellStockInfo();
                 user.updatePortfolio();
                 this.stocksTableListeners();
                 this.hide();
+                var notif = new Notification({
+                    icon: "check",
+                    text: `<p>You have sold ${amount.toFixed(5)}
+                            <span class='stock-name'>${this.stockName}</span>  
+                            for ${(amount * this.stockPrice).toFixed(2)} <span class='stock-name'>USD</span>!</p>`,
+                  });
+                  notif.show();
             }
         });
 
@@ -218,18 +312,62 @@ export class BuyDialog {
             row.addEventListener('click', () => {
                 //show dialog
                 this.show();
+
+
+
                 this.stockName = row.getAttribute('name');
                 this.stockPrice = broker.findStockByName(this.stockName).price
                 for (let i = 0; i < this.stockNameElement.length; i++) {
-                    this.stockNameElement[i].textContent = this.stockName;
+                    this.stockNameElement[i].innerHTML = `Selected stock: <span class='stock-name'>${this.stockName}</span>`;
                 }
-                this.stockBuyPriceElement.textContent = `${this.stockPrice} EUR`;
-                // this.stockSellPriceElement.innerHTML = `
-                // <p>${this.stockPrice} EUR</p>
-                // <p>You own ${user.getStockAmount(user.getStockIndexByName(this.stockName)).toFixed(5)} 
-                // (${(user.getStockAmount(user.getStockIndexByName(this.stockName))*this.stockPrice).toFixed(2)} EUR)</p>
+                this.stockBuyPriceElement.innerHTML = `<p>Price: ${this.stockPrice} <span class='stock-name'>USD</span> </p>`;
+                this.buyStockForAmountInput.setAttribute('suffix-text', this.stockName);
+                this.sellStockForAmountInput.setAttribute('suffix-text', this.stockName);
+                
+                 // show curve
+                let buyCurveWrapper = document.querySelector('#buy-curve-wrapper')
+                buyCurveWrapper.innerHTML = '';
+                const buyCurve = new Curve(600,300, buyCurveWrapper);
+                let points = this.getStockHistory(this.stockName, 90);
+                buyCurve.drawCurve(
+                    points.slice(0, 30).map((price, index) => ({ x: 30 - index, y: Math.round(price) }))
+                );
 
-                // `;
+                const timeChips = document.querySelectorAll('#buy-graph-time-chips > md-filter-chip');
+                timeChips[1].selected = true;
+                timeChips[0].selected = false;
+                timeChips[2].selected = false;
+
+                for (let i = 0; i < timeChips.length; i++) {
+                    timeChips[i].addEventListener('click', () => {
+                        for (let j = 0; j < timeChips.length; j++) {
+                            timeChips[j].selected = false;
+                        }
+                        timeChips[i].selected = true;
+                        let time = '';
+                        if (timeChips[i].getAttribute('time') == '3 months') {
+                            time = 90;
+                        }
+                        else if (timeChips[i].getAttribute('time') == '30 days') {
+                            time = 30;
+                        }
+                        else if (timeChips[i].getAttribute('time') == '7 days') {
+                            time = 7;
+                        }
+                        buyCurve.clear();
+                        buyCurve.drawCurve(
+                            points.slice(0, time).map((price, index) => ({ x: time - index, y: Math.round(price) }))
+                        );
+                        
+                    });
+                }
+                
+
+
+
+                
+
+                
                 this.updateSellStockInfo();
                 this.enableDynamicInputs();
             });
@@ -239,9 +377,9 @@ export class BuyDialog {
         let amount = user.getStockAmount(user.getStockIndexByName(this.stockName));
 
         this.stockSellPriceElement.innerHTML = `
-                <p>${this.stockPrice} EUR</p>
-                <p>You own ${(amount != undefined) ? amount.toFixed(5) : 0} 
-                (${((amount != undefined) ? (amount*this.stockPrice).toFixed(2) : 0)} EUR)</p>
+                <p>Price: ${this.stockPrice} <span class='stock-name'>USD</span></p>
+                <p style='font-style:italic'>You own ${(amount != undefined) ? amount.toFixed(5) : 0} 
+                (${((amount != undefined) ? (amount*this.stockPrice).toFixed(2) : 0)} <span class='stock-name'>USD</span>)</p>
 
                 `;
     }
@@ -251,47 +389,188 @@ export class BuyDialog {
         this.sellStockForAmountInput.value = 0;
         this.sellStockForInput.value = 0;
     }
+    getStockHistory(stockName, amount)
+    {
+        let hist = JSON.parse(localStorage.getItem(`${stockName}_hist`));
+        let stockHistory = [];
+
+        for(let i = 0; i < amount; i++) // stockHistory[0] - latest price
+        {
+            stockHistory[i] = parseFloat(hist[i].close);
+        }
+        return stockHistory;
+    }
 }
 
 /***************** RECENT TRANSACTIONS ***************/
 export class RecentTransactions {
     constructor() {
         this.transactions = [];
+        this.loadFromStorage();
+        this.init(); // Initialize event listeners
     }
-    //balanceDiff - kiek pinigu buvo gauta pardavus arba isleista nusipirkus
-    addToList(stockName, amountTraded, balanceDiff, date) {
-        let transaction = {
-            stockName: stockName,
-            amountTraded: amountTraded,
-            balanceDiff: balanceDiff,
-            date: date
-        };
-        this.transactions.push(transaction);
-    };
-    removeFromList() {
 
+    init() {
+        // Load existing transactions when DOM is ready
+        window.addEventListener('DOMContentLoaded', () => {
+            this.refreshTable();
+        });
     }
-    get(i) {
-        return this.transactions[i];
+
+    loadFromStorage() {
+        try {
+            const stored = localStorage.getItem('recentTransactions');
+            
+            // Clear any legacy corrupted data
+            if (typeof stored === 'string' && 
+                (stored.startsWith('[object') || !stored.startsWith('['))) {
+                localStorage.removeItem('recentTransactions');
+                this.transactions = [];
+                return;
+            }
+            
+            this.transactions = stored ? JSON.parse(stored) : [];
+            
+            // Validate and sanitize transactions
+            this.transactions = this.transactions.filter(trans => 
+                trans &&
+                typeof trans.stockName === 'string' &&
+                typeof trans.amountTraded === 'number' &&
+                typeof trans.balanceDiff === 'number' &&
+                trans.date
+            ).map(trans => ({
+                ...trans,
+                stockName: String(trans.stockName).substring(0, 50) // Sanitize name
+            }));
+            
+        } catch (e) {
+            console.error('Error loading transactions:', e);
+            this.transactions = [];
+        }
     }
-    clearList() {
-        this.transactions = [];
-        //taip pat reikia isvalyti lentele
+
+    saveToStorage() {
+        localStorage.setItem(
+            'recentTransactions',
+            JSON.stringify(this.transactions)
+        );;
     }
+
+    addToList(stockName, amountTraded, balanceDiff, date) {
+        // Validate and sanitize input
+        const transaction = {
+            stockName: String(stockName || 'Unknown').trim(),
+            amountTraded: Number(amountTraded) || 0,
+            balanceDiff: Number(balanceDiff) || 0,
+            date: date || new Date().toISOString()
+        };
+        console.log(stockName);
+        
+        this.transactions.unshift(transaction);
+        this.saveToStorage();
+        this.putInTable(transaction);
+    }
+
+     refreshTable() {
+        const container = document.querySelector('#dashboard-transactions-container');
+        if (container) {
+            container.innerHTML = ''; // Clear existing items
+            
+            // Reverse transactions before adding to maintain newest-first
+            this.transactions.slice().reverse().forEach(t => this.putInTable(t));
+        }
+    }
+
     putInTable(transactionInfo) {
-        const recentTransactionsTable = document.querySelector('#dashboard-transactions-container');
-        const transaction = document.createElement('div');
-        transaction.classList.add('transaction-info-container');
-        const status = (transactionInfo.amountTraded >= 0) ? 'Bought' : 'Sold';
-      //  console.log(transactionInfo.balanceDiff.toFixed(2));
-        transaction.innerHTML = `
-            <p class="transaction-status ${status.toLowerCase()}">${status}</p>
-            <p class="transaction-amount">${Math.abs(transactionInfo.amountTraded).toFixed(5)}</p>
-            <p class="transaction-stock-name">${transactionInfo.stockName}</p>
-            <p>for</p>
-            <p class="transaction-for">${parseFloat(transactionInfo.balanceDiff).toFixed(3)} Eur</p>
-            <p class="transaction-date">${transactionInfo.date}</p>
+        const container = document.querySelector('#dashboard-transactions-container');
+        if (!container) return;
+
+        try {
+            const date = new Date(transactionInfo.date);
+            const formattedDate = isNaN(date.getTime()) 
+                ? 'Unknown date' 
+                : date.toLocaleDateString();
+
+            const status = transactionInfo.amountTraded >= 0 ? 'Bought' : 'Sold';
+            const absAmount = Math.abs(transactionInfo.amountTraded).toFixed(5);
+            const balance = parseFloat(transactionInfo.balanceDiff).toFixed(2);
+
+            const item = document.createElement('md-list-item');
+            item.innerHTML = `
+                <div slot="headline" class="${status.toLowerCase()}">
+                    ${status} ${transactionInfo.stockName}
+                </div>
+                <div slot="supporting-text">
+                    ${absAmount} shares • ${balance} USD
+                </div>
+                <div slot="trailing-supporting-text">
+                    ${formattedDate}
+                </div>
+            `;
+            container.prepend(item);
+        } catch (e) {
+            console.error('Error rendering transaction:', e);
+        }
+    }
+
+    // ... other methods remain the same ...
+}
+
+/* ------- buy/sell pranesimai -------*/
+export class Notification {
+    constructor(data) {
+
+        this.notif = document.createElement('div');
+        this.notif.classList = 'notification-container hidden';
+        
+        this.notif.innerHTML = `
+             <div class="notification-icon-container">
+                <span class='material-symbols-outlined'>${data.icon}</span>
+             </div>
+             <div class="notification-text-container">${data.text}</div>
+             <div class="notification-button-container">
+                <button style='display:none;'>${data.button}</button>
+             </div>
         `;
-        recentTransactionsTable.prepend(transaction);
+        this.data = data;
+        document.body.appendChild(this.notif);
+
+        if(data.x != undefined || data.y != undefined) {
+            this.notif.classList = 'notification-container hidden';
+        }
+        else this.notif.classList = 'notification-container notifTranslate hidden';
+    }
+    show() {
+        /*const otherNotifs = document.querySelectorAll('.notification-container');
+        if (otherNotifs.length > 1) {
+            for (let i = 0; i < otherNotifs.length; i++) {
+                if (otherNotifs[i] === this.notif) continue;
+                for (let j = 0; j < otherNotifs[i].length; j++) {
+                    otherNotifs[j].classList = 'notification-container';
+                }
+                otherNotifs[i].classList.add(`notif${i+1}`);
+            }
+        }*/
+        const allNotifs = document.querySelectorAll('.notification-container');
+        if(allNotifs.length > 1) {
+            allNotifs.forEach(notifs => {
+                if (this.notif !== notifs) {
+                    notifs.remove();
+                }
+            });
+        }
+
+        setTimeout(() => this.notif.classList.remove('hidden'), 10);
+
+        if (this.data.autohide != false) {
+            setTimeout(() => this.hide(), 2000);
+        }
+    }
+    hide() {
+        this.notif.classList.add('hidden');
+        setTimeout(() => this.notif.remove(), 500);
+    }
+    setPosition(x, y) {
+
     }
 }

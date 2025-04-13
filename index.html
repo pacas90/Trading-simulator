@@ -21,24 +21,24 @@
     document.adoptedStyleSheets.push(typescaleStyles.styleSheet);
   </script>
     </head>
-    <body class="dark-theme">
+    <body class="light-theme">
         <div id="nav-bar">
-            <button value="home" class="nav-bar-buttons nav-bar-buttons-active">
+            <md-text-button value="home" class="nav-bar-buttons nav-bar-buttons-active">
                 <span class="material-symbols-outlined">home</span>
                 <p>Home</p>
-            </button>
-            <button value="portfolio" class="nav-bar-buttons">
+            </md-text-button>
+            <md-text-button value="portfolio" class="nav-bar-buttons">
                 <span class="material-symbols-outlined">category</span>
                 <p>Portfolio</p>
-            </button>
-            <button value="buysell" class="nav-bar-buttons">
+            </md-text-button>
+            <md-text-button value="buysell" class="nav-bar-buttons">
                 <span class="material-symbols-outlined">shopping_cart</span>
                 <p>Buy/sell</p>
-            </button>
-            <button value="help" class="nav-bar-buttons">
+            </md-text-button>
+            <md-text-button value="help" class="nav-bar-buttons">
                 <span class="material-symbols-outlined">settings</span>
                 <p>Options</p>
-            </button>
+            </md-text-button>
         </div>
         <div id="content">
             <!--cia bus contentas kuris priklauso nuo pasirinkto navigation bare mygtuko-->
@@ -49,21 +49,40 @@
                             <p>TOTAL STOCKS VALUE</p>
                             <p id="total-account-value"><span>$ </span>+?????</p>
                         </div>
-                       <!-- <div>
+                        <div>
                             <p>TODAY'S CHANGE</p>
-                            <p id="todays-change-value">+?????<span> EUR</span></p>
-                            <p id="todays-change-percentage">(+????? %)</p>
-                        </div>-->
+                            <p id="todays-change-value">+0<span> USD</span></p>
+                            <p id="todays-change-percentage">(+0 %)</p>
+                        </div>
                     </div>
                    <div id="dashboard-recent-transactions-container">
                         <p id="dashboard-recent-transactions-header">RECENT TRANSACTIONS</p>
                         <div id="dashboard-transactions-container">
+                            <!-- <md-list id="recent-transactions-list-element">
 
+                            </md-list> -->
                         </div>
                     </div>
-                    <!--<div id="dashboard-graph-container">
-                        <p>cia siokia tokia kreive reikes nubraizyt</p>
-                    </div>-->
+                    <div id="dashboard-graph-container">
+                        <div class="curve-wrapper">
+                            
+                        </div>
+                        <div id="dashboard-curve-x-axis" class="curve-x-axis"></div>
+                            <div id="dashboard-curve-y-axis" class="curve-y-axis"></div>
+                        <!-- <p>sitie duomenys random skaiciai kolkas cia, bet turetu buti VISU turimu stoku bendras kainu svyravimas</p> -->
+                    
+                    
+                        <div class="inline-flex" id="main-graph-time-chips-container">
+                            <md-chip-set id="main-graph-time-chips">
+                                <md-filter-chip time="3 months">3 months</md-filter-chip>
+                                <md-filter-chip selected time="30 days">30 days</md-filter-chip>
+                                <md-filter-chip time="7 days">7 days</md-filter-chip>
+                            </md-chip-set>
+                        </div>
+                    
+                    
+                    
+                    </div>
                 </div>
             </div>
             <div class="nav-content portfolio hidden">
@@ -71,12 +90,12 @@
                     <table id="portfolio-table">
                         <tbody>
                             <tr header="true">
-                                <td>Name</td>
-                                <td>Price</td>
-                                <td class="description">Description</td>
-                                <td class="change">Change</td>
-                                <td>Amount</td>
-                                <td>Total value</td>
+                                <td><div>Name</div></td>
+                                <td><div>Price</div></td>
+                                <td class="description"><div>Description</div></td>
+                                <td class="change"><div>Change</div></td>
+                                <td sort="desc"><div>Amount<span class="table-sort-arrow material-symbols-outlined">arrow_drop_down</span></div></td>
+                                <td><div>Total value</div></td>
                             </tr>
                         </tbody>
                     </table>
@@ -84,15 +103,40 @@
             </div>
             <div class="nav-content buysell hidden">
                     <div id="stocks-table-wrapper">
-                        <table id="stocks-table">
+                        <table id="limit-orders-table">
+                            <p>Order list</p>
                             <tbody>
                                 <tr header="true">
                                     <td>Name</td>
                                     <td>Price</td>
-                                    <td class="description">Description</td>
-                                    <td>Volume</td>
-                                    <td>Market cap</td>
-                                    <td>Revenue</td>
+                                    <td>Amount</td>
+                                    <td>Type</td>
+                                </tr>
+                                <!-- <tr><td>No limit orders!</td></tr> -->
+                            </tbody>
+                        </table>
+                        <!-- <table id="short-orders-table">
+                            <p>Short order list</p>
+                            <tbody>
+                                <tr header="true">
+                                    <td>Name</td>
+                                    <td>Price</td>
+                                    <td>Amount</td>
+                                    <td>Date</td>
+                                </tr>
+                                <tr><td>No short orders!</td></tr>
+                            </tbody>
+                        </table> -->
+                        <table id="stocks-table">
+                            <p>Stocks available for sale</p>
+                            <tbody>
+                                <tr header="true">
+                                    <td><div>Name</div></td>
+                                    <td sort="desc"><div>Price<span class="table-sort-arrow material-symbols-outlined">arrow_drop_down</span></div></td>
+                                    <td class="description"><div>Description</div></td>
+                                    <td><div>Volume</div></td>
+                                    <td><div>Market cap</div></td>
+                                    <td><div>Revenue</div></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -100,8 +144,14 @@
             </div>
             <div class="nav-content help hidden">
                 <div class="options-tabs">
-                    <p>Enable light mode</p>
-                    <input id="light-mode-switch" type="checkbox">
+                    <!-- <p>Enable light mode</p>
+                    <input id="light-mode-switch" type="checkbox"> -->
+                    
+                     <label>
+                        Enable light mode 
+                        <md-checkbox checked id="light-mode-switch"></md-checkbox>
+                      </label> 
+
                 </div>
                 <!--<div class="options-tabs">
                     <button>Reset</button>
@@ -110,51 +160,213 @@
         </div>
         <div id="balance-container">
             <p id="money-balance"></p>
-            <span id="currency-balance">EUR</span>
+            <span id="currency-balance">USD</span>
         </div>
         <!--buy dialog-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <md-dialog id="buy-sell-dialog">
+            <div slot="headline">
+                <md-tabs>
+                    <md-primary-tab id="buy-tab" aria-controls="buy-panel">Buy</md-primary-tab>
+                    <md-primary-tab id="sell-tab" aria-controls="sell-panel">Sell</md-primary-tab>
+                    <md-primary-tab id="trading-tab" aria-controls="trading-panel">Trading</md-primary-tab>
+                </md-tabs>
+            </div>
+            <div slot="content" id="form-id" method="dialog">
+                <div id="buy-panel" aria-labelledby="buy-tab" role="tabpanel">
+                    <p class="stock-name-element"></p>
+                    <p id="stock-buy-price-element"></p>               
+                    <md-divider></md-divider>
+                    <br>
+                    <div class="inline-flex">
+                        <label class="inline-flex">Show price curve
+                            <md-switch id="show-graph-switch"></md-switch>
+                        </label>
+                    </div>
+                    <br>
+                    <div id="buy-graph-container" class="hidden">
+                        <div id="buy-curve-wrapper" class="curve-wrapper">
+                           
+                        </div>
+                        <br>
+                        <div class="inline-flex" id="buy-graph-time-chips-container">
+                            <md-chip-set id="buy-graph-time-chips">
+                                <md-filter-chip time="3 months">3 months</md-filter-chip>
+                                <md-filter-chip selected time="30 days">30 days</md-filter-chip>
+                                <md-filter-chip time="7 days">7 days</md-filter-chip>
+                            </md-chip-set>
+                        </div>
+                        <br>
+                    </div>
+                    
+                    <md-divider></md-divider>
+                    <div class="dialog-input-container">
+                        <md-outlined-text-field suffix-text="" min="0" step="0.001" id="buy-amount-input" label="Stock amount" type="number"></md-outlined-text-field>
+                        <md-outlined-text-field min="0" step="0.1" prefix-text="$"  id="buy-price-input" label="Price" type="number"></md-outlined-text-field>
+                    </div>
+                    <br>
+                    <md-filled-button type="button" id="buy-button">Buy</md-filled-button>
+                </div>
+                <div id="sell-panel" role="tabpanel" aria-labelledby="sell-tab" hidden>
+                    <p class="stock-name-element"></p>  
+                    <p id="stock-sell-price-element"></p>               
+                    <md-divider></md-divider>            
+                    <div class="dialog-input-container">
+                        <md-outlined-text-field suffix-text="" min="0" step="0.0001" id="sell-amount-input" label="Stock amount" type="number"></md-outlined-text-field>
+                        <md-outlined-text-field min="0" step="0.01" prefix-text="$" id="sell-price-input" label="Price" type="number"></md-outlined-text-field>
+                    </div>
+                    <br>
+                    <md-filled-button type="button" id="sell-button">Sell</md-filled-button>
+                    <md-text-button type="button" id="sell-all-button">Sell all</md-text-button>
+                </div>
+                <div id="trading-panel" role="tabpanel" aria-labelledby="trading-tab" hidden>
+                    <!-- <p>Short order</p>
+                        <input placeholder="amount" type="number" min="0" step="0.01" id="short-order-amount-input" class="buy-stock-dialog-input">
+                      
+                        <md-filled-button id="short-order-add">Add</md-filled-button>
+                        <br><br><br>
+                        <p>Limit order</p>
+                    </div>
+                    
+                    <div id="limit-order-container">
+                        
+                        <input placeholder="amount" type="number" min="0" step="0.01" id="limit-order-amount-input" class="buy-stock-dialog-input">
+                        <input placeholder="price" type="number" min="0" step="0.01" id="limit-order-price-input" class="buy-stock-dialog-input">
+                      
+                        <md-filled-button id="limit-order-sell">Sell</md-filled-button>
+                        <md-filled-button id="limit-order-buy">Buy</md-filled-button>
+                    </div> -->
+                    <p>Short order</p>
+                    <div class='inline-flex'>
+                        <md-outlined-text-field suffix-text="" min="0" step="0.0001" id="short-order-amount-input" label="Stock amount" type="number"></md-outlined-text-field>
+                        <md-filled-button id="short-order-add">Add</md-filled-button>
+                    </div>
+                    <br>
+                    <md-divider></md-divider>
+                    <p>Limit order</p>
+                    <div class='inline-flex'>
+                        <md-outlined-text-field suffix-text="" min="0" step="0.0001" id="limit-order-amount-input" label="Stock amount" type="number"></md-outlined-text-field>
+                        <md-outlined-text-field min="0" step="0.01" prefix-text="$" id="limit-order-price-input" label="Price" type="number"></md-outlined-text-field>
+                    </div>
+                    <br>
+                    <div class="inline-flex">
+                        <md-filled-button id="limit-order-sell">Sell</md-filled-button>
+                        <md-filled-button id="limit-order-buy">Buy</md-filled-button>
+                    </div>
+                    <br>
+                    <md-divider></md-divider>
+                    
+
+                </div>
+            </div>
+            <div slot="actions">
+               <md-text-button id="dialog-close-button">Close</md-text-button>
+            </div>
+        </md-dialog>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+       
+<!-- 
+
         <div class="dialog-background dialog-hidden" dialog="buy-stock">
             <div class="dialog-container">
                 <div id="buy-stock-dialog-navigation-container">
-                    <button class="buy active-dialog-nav-button">Buy</button>
-                    <button class="limit-order">Limit order</button>
-                    <button class="sell">Sell</button>
+                     <button class="buy active-dialog-nav-button">Buy</button>
+                    <button class="limit-order">Advanced Trading</button>
+                    <button class="sell">Sell</button> 
+                    <md-tabs>
+                        <md-primary-tab aria-controls="buy-panel">Buy</md-primary-tab>
+                        <md-primary-tab aria-controls="sell-panel">Sell</md-primary-tab>
+                        <md-primary-tab aria-controls="trading-panel">Advanced trading</md-primary-tab>
+                    </md-tabs>
+
                 </div>
-                <div class="buy-stock-dialog-content buy">
+                <div id="buy-panel" class="buy-stock-dialog-content buy" role="tabpanel">
                     <p class="dialog-stock-name"></p>
                     <p class="dialog-stock-price"></p>
                     <div class="dialog-price-graph"></div>
-                    <div class="dialog-buttons">
-                        <button class="dialog-button" id="buy-stocks-button">Buy</button>
+                 
+                        <md-filled-button id="buy-stocks-button">Buy</md-filled-button>
                         <input placeholder="0" value="0" type="number" min="0" step="0.01" class="buy-stock-dialog-input buy-stock-amount">
                         <p class="dialog-stock-name"></p>
                         <p> for </p>
                         <input placeholder="0" type="number" value="0" min="0" step="0.1" class="buy-stock-dialog-input buy-stock-for">
                     </div>
                 </div>
-                <div class="buy-stock-dialog-content limit-order hidden">
+                <div id="trading-panel" class="buy-stock-dialog-content limit-order hidden" role="tabpanel">
+                    <div id="short-oder-container">
+                        <p>Short order</p>
+                        <input placeholder="amount" type="number" min="0" step="0.01" id="short-order-amount-input" class="buy-stock-dialog-input">
+                      
+                        <md-filled-button id="short-order-add">Add</md-filled-button>
+                        <br><br><br>
+                        <p>Limit order</p>
+                    </div>
+                    
                     <div id="limit-order-container">
+                        
                         <input placeholder="amount" type="number" min="0" step="0.01" id="limit-order-amount-input" class="buy-stock-dialog-input">
                         <input placeholder="price" type="number" min="0" step="0.01" id="limit-order-price-input" class="buy-stock-dialog-input">
-                        <button class="dialog-button" id="limit-order-sell">Sell</button>
-                        <button class="dialog-button" id="limit-order-buy">Buy</button>
+                      
+                        <md-filled-button id="limit-order-sell">Sell</md-filled-button>
+                        <md-filled-button id="limit-order-buy">Buy</md-filled-button>
                     </div>
                 </div>
-                <div class="buy-stock-dialog-content sell hidden">
+                <div id="sell-panel" class="buy-stock-dialog-content sell hidden" role="tabpanel">
                     <p class="dialog-stock-name"></p>
                     <div class="dialog-stock-price"></div>
                     
                     <div class="dialog-buttons">
-                        <button class="dialog-button" id="sell-stocks-button">Sell</button>
+                        
+                        <md-filled-button id="sell-stocks-button">Sell</md-filled-button>
                         <input placeholder="0" value="0" type="number" min="0" step="0.01" class="buy-stock-dialog-input sell-stock-amount">
                         <p class="dialog-stock-name"></p>
                         <p> for </p>
                         <input placeholder="0" type="number" value="0" min="0" step="0.1" class="buy-stock-dialog-input sell-stock-for">
                     </div>
-                    <button class="dialog-button" id="sell-all-stocks-button">Sell all</button>
+                    
+                     <md-outlined-button id="sell-all-stocks-button">Sell all</md-outlined-button>
                 </div>
             </div>
-        </div>
+        </div> -->
         <!--buy dialog-->
     </body>
     <script type="module" src="./index.js"></script>

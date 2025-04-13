@@ -39,16 +39,16 @@ export class GlobalStockList
         
         if(this.stocks.length==0||this.stocks==null){
 
-            this.createStock("AAPL", 35, "Apple is a tech giant", 20000, 50000, 15000);
-            this.createStock("MSFT", 200, "Microsoft is a software co.", 19000, 70000, 17000);
-            this.createStock("TSLA", 350, "Tesla makes electric cars", 18000, 60000, 22000);
-            this.createStock("AMZN", 40, "Amazon is an e-commerce leader", 15000, 90000, 25000);
-            this.createStock("GOOG", 100, "Google is a search engine co.", 12000, 80000, 23000);
-            this.createStock("NVDA", 130, "Nvidia specializes in graphics", 17000, 65000, 20000);
-            this.createStock("META", 50, "Meta is a social media company", 16000, 75000, 21000);
-            this.createStock("NFLX", 30, "Netflix is a streaming service", 14000, 65000, 19000);
-            this.createStock("SPY", 430, "SPY is an ETF for S&P 500", 20000, 90000, 23000);
-            this.createStock("V", 200, "Visa is a global payments network", 18000, 65000, 21000);
+            this.createStock("AAPL", 35, "Apple is a tech giant", 20000, "3.28T", "391B");
+            this.createStock("MSFT", 200, "Microsoft is a software co.", 19000, "2.82T", "245B");
+            this.createStock("TSLA", 350, "Tesla makes electric cars", 18000, "825.8B", "97.7B");
+            this.createStock("AMZN", 40, "Amazon is an e-commerce leader", 15000, "2.04T", "637B");
+            this.createStock("GOOG", 100, "Google is a search engine co.", 12000, "1.89T", "348B");
+            this.createStock("NVDA", 130, "Nvidia specializes in graphics", 17000, "2.68T", "130.5B");
+            this.createStock("META", 50, "Meta is a social media company", 16000, "1.46T", "164.5B");
+            this.createStock("NFLX", 30, "Netflix is a streaming service", 14000, "399.4B", "39B");
+            this.createStock("SPY", 430, "SPY is an ETF for S&P 500", 20000, "501.5B", "151B");
+            this.createStock("V", 200, "Visa is a global payments network", 18000, "669.7B", "35.9B");
             
             localStorage.setItem("globalStockList",JSON.stringify(this.stocks));
             
@@ -56,6 +56,9 @@ export class GlobalStockList
         else{
             this.generateStockObjects();    
         }
+        }
+        resetStocks(){
+            localStorage.removeItem("globalStockList");
         }
     generateStockObjects(){
         this.stocks = JSON.parse(localStorage.getItem("globalStockList")) || [];      
@@ -84,6 +87,7 @@ export class GlobalStockList
         row.setAttribute("name", name);
         for (let i = 0; i < data.length; i++) {
             const cell = document.createElement('td');
+            if (i == 0) cell.classList.add('stock-name');
             if (i == 2) {
                 cell.classList.add('description');
             }
@@ -167,12 +171,12 @@ export class GlobalStockList
                     const data = await response.json();
                     
                     stockData.push({ symbol, currentPrice: data.c });
-                    console.log(`${symbol}: ${data.c}`);
+                    //console.log(`${symbol}: ${data.c}`);
     
                     await wait(100);
                 }
     
-                console.log("Batch Stock Data:", stockData);
+                //console.log("Batch Stock Data:", stockData);
                 
                 let currentTime = new Date().toISOString();
                 localStorage.setItem("lastStockInfo", JSON.stringify(stockData));
@@ -219,10 +223,62 @@ export class GlobalStockList
             setInterval(() => this.fetchStockInfo(), 65000);
         }
     }
+    fetchHistoricalData()
+    {
+        const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+        const apiKey = "lXpj4p4JRk6pGiQDSh9T3OnsniC3McAL";
+        const symbols = ["AAPL", "MSFT", "TSLA", "AMZN", "GOOG", "NVDA", "META", "NFLX", "SPY", "V"];
+
+        async function fetchHistoricalData() {
+        try {
+            
+            for (const symbol of symbols)
+            {
+                const response = await fetch(`https://financialmodelingprep.com/api/v3/historical-price-full/${symbol}?timeseries=252&apikey=${apiKey}`);
+                const data = await response.json();
+        
+                if (data && data.historical) 
+                {
+                    console.log("Historical Stock Data:", data.historical);
+                    localStorage.setItem(`${symbol}_hist`, JSON.stringify(data.historical));
+                } 
+                else 
+                {
+                    console.error("Error: Unexpected data format", data);
+                }
+                await wait(50);
+            }
+        } 
+        catch (error) 
+        {
+            console.error("Error fetching historical data:", error);
+        }
+        }
+        fetchHistoricalData();
+    }
+    updateHistoricalData()
+    {
+        let currentTime = new Date();
+        let lastUpdate = new Date(localStorage.getItem("lastHistoricalUpdateTime"))
+        const differenceInDays = Math.floor((currentTime - lastUpdate) / (1000 * 3600 * 24))
+
+        if(lastUpdate == null)
+        {
+            this.fetchHistoricalData()
+            localStorage.setItem("lastHistoricalUpdateTime", currentTime.toISOString())
+
+        }
+        else if (differenceInDays > 0)
+        {
+            this.fetchHistoricalData()
+            localStorage.setItem("lastHistoricalUpdateTime", currentTime.toISOString())
+        }
+    }
 }
-const orderType = {
-    BUY: "BUY",
-    SELL: "Sell"       
+export const orderType = {
+    BUY: "LIMIT BUY",
+    SELL: "LIMIT SELL",
+    SHORT: "SHORT"       
 };
 export class Broker{
 
@@ -283,7 +339,7 @@ export class Broker{
         if(amount*price<=this.user.getBalance()){
             if(this.stockList.getStockIndexByName(name)!=-1){
                 this.user.removeBalance(amount*price);
-                this.user.addLimitOrder(new Order(price,amount,name,orderType.BUY));
+                this.user.addOrder(new Order(price,amount,name,orderType.BUY));
             }
             else console.log("Invalid name for the stock, it doesn't exist");
         }
@@ -298,7 +354,7 @@ export class Broker{
         if(amount<=stockAmount){
             if(this.stockList.getStockIndexByName(name)!=-1){
                 this.user.removeStock(this.stockList.findStockByName(name),amount);
-                this.user.addLimitOrder(new Order(price,amount,name,orderType.SELL));
+                this.user.addOrder(new Order(price,amount,name,orderType.SELL));
             }
             else console.log("Invalid name for the stock, it doesn't exist");
         }
@@ -306,17 +362,34 @@ export class Broker{
             console.log("Invalid number for LimitOrderSell | must be less or equal to the stock amount")
         }
     }
+    // sukuria short pozicija
+    ShortOrder(name,price,amount){
+        this.user.addOrder(new Order(price,amount,name,orderType.SHORT));
+    }
+    // uzdaro short pozicija, skirtumas akciju kainoje nuo uzsakymo pradzios kainos 
+    // ir dabartines pridedamas prie user balance;
+    CloseShortOrder(order){
+        const stock = this.stockList.findStockByName(order.stockName);
+        if(order.orderType==orderType.SHORT){
+            const netGain = (stock.price*order.amount)-(order.price*order.amount);
+            this.user.addBalance(netGain);
+            this.user.removeOrder(order);
+        }
+    }
     // is UI limit orderiu listo paspaudus pasauktum sita klase su orderiu CancelLimitOrder(new Order(t.t)) <- info i ji is UI gali paduoti
     // price, amount,stockname, orderType;
     CancelLimitOrder(order){
+        
         const stock = this.stockList.findStockByName(order.stockName);
         if(order.orderType==orderType.SELL){
         this.user.addStock(stock,order.amount);
         }
         else if(order.orderType==orderType.BUY){
             this.user.addBalance(order.amount*order.price);
+        }else if(order.orderType==orderType.SHORT){
+            this.CloseShortOrder(order);
         }
-        user.removeLimitOrder(order);
+        this.user.removeOrder(order);
     }
     // patikrina ar limit orderis patenka i reikiama kaina pardavimo/pirkimo, atnaujinant akciju kaina reikia pasaukti sita metoda
     UpdateLimitOrders(){
@@ -327,24 +400,80 @@ export class Broker{
         //    else console.log(stock.name+" "+stock.price+" "+ order.price)
            if(stock.name==order.stockName&& stock.price<=order.price&&orderType.BUY==order.orderType){
                 this.user.addStock(stock,order.amount);
-                this.user.removeLimitOrder(order);
+                this.user.removeOrder(order);
                 i--;
             }
             else if (stock.name==order.stockName&& stock.price>=order.price&&orderType.SELL==order.orderType){
                 
                 this.user.addBalance(order.amount*order.price);
-                this.user.removeLimitOrder(order);
+                this.user.removeOrder(order);
                 i--;
             }
         }
     }
+    //duodam stock name, grazina sarasa options pagal kuri ir bus perkama;
+    generateOptions(stockName){
+        const optionCount = Math.max(Math.floor(Math.random*25),10);
+        for(let i = 0;i<optionCount;i++){
+            const currentPrice = this.stockList.findStockByName(stockName).price;
+            const newOptionStrike = currentPrice+(Math.floor(Math.random*30));
+            const timeValue = (Math.floor(Math.random*30)+1);
+            const newExpiryDate = new Date().getTime()+(timeValue*30*24*60*60*1000);
+            const premiumPrice =Math.max((currentPrice-newOptionStrike)*0.5,0)+(timeValue*0.5);
+            optionList[i] = new Option();
+        }
+    }
 }
-// Limit order klase
+// order klase
 export class Order{
+    /**
+     * @param {float} price - kaina
+     * @param {float} amount - kiekis
+     * @param {string} stockName - akcijos pav/identifikatorius
+     * @param {orderType} orderType - order type, buy ir sell butu limit orders o short, short pozicijai;
+     */
     constructor(price,amount,stockName,orderType){
         this.price = price;
         this.amount = amount;
         this.stockName = stockName;
         this.orderType = orderType;
+    }
+}
+export const optionType = {
+    PUT: "put",
+    CALL: "call"
+}
+export class Option{
+    constructor(strikePrice,stockName,premium,expiryDate,optionType){
+        this.strikePrice = strikePrice;
+        this.stockName = stockName;
+        this.premium = premium;
+        this.expiryDate = expiryDate;
+        this.optionType = optionType;
+    }
+    isExpired(currentDate){
+        return currentDate>=this.expiryDate;
+    }
+    realizeOption(){
+        const stocklist = new GlobalStockList();
+        const currentDate = new Date();
+        const user = new User();
+        if(this.isExpired(currentDate.getTime())){
+            
+            const stock = stocklist.findStockByName(this.stockName);
+                
+            if(this.optionType==optionType.CALL){
+                if(stock.price>this.strikePrice){
+                    const priceDiff = stock.price-this.strikePrice;
+                    user.addBalance(priceDiff);
+                }
+            }
+            else if(this.optionType == optionType.PUT) {
+                if(stock.price<this.strikePrice){
+                    const priceDiff = this.strikePrice-stock.price;
+                    user.addBalance(priceDiff);
+                }
+            }
+        }
     }
 }
