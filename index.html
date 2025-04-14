@@ -183,7 +183,8 @@
                 <md-tabs>
                     <md-primary-tab id="buy-tab" aria-controls="buy-panel">Buy</md-primary-tab>
                     <md-primary-tab id="sell-tab" aria-controls="sell-panel">Sell</md-primary-tab>
-                    <md-primary-tab id="trading-tab" aria-controls="trading-panel">Trading</md-primary-tab>
+                    <md-primary-tab id="trading-tab" aria-controls="trading-panel">Advanced Trading</md-primary-tab>
+                    <md-primary-tab id="option-tab" aria-controls="trading-panel">Option Trading</md-primary-tab>
                 </md-tabs>
             </div>
             <div slot="content" id="form-id" method="dialog">
@@ -234,22 +235,6 @@
                     <md-text-button type="button" id="sell-all-button">Sell all</md-text-button>
                 </div>
                 <div id="trading-panel" role="tabpanel" aria-labelledby="trading-tab" hidden>
-                    <!-- <p>Short order</p>
-                        <input placeholder="amount" type="number" min="0" step="0.01" id="short-order-amount-input" class="buy-stock-dialog-input">
-                      
-                        <md-filled-button id="short-order-add">Add</md-filled-button>
-                        <br><br><br>
-                        <p>Limit order</p>
-                    </div>
-                    
-                    <div id="limit-order-container">
-                        
-                        <input placeholder="amount" type="number" min="0" step="0.01" id="limit-order-amount-input" class="buy-stock-dialog-input">
-                        <input placeholder="price" type="number" min="0" step="0.01" id="limit-order-price-input" class="buy-stock-dialog-input">
-                      
-                        <md-filled-button id="limit-order-sell">Sell</md-filled-button>
-                        <md-filled-button id="limit-order-buy">Buy</md-filled-button>
-                    </div> -->
                     <p>Short order</p>
                     <div class='inline-flex'>
                         <md-outlined-text-field suffix-text="" min="0" step="0.0001" id="short-order-amount-input" label="Stock amount" type="number"></md-outlined-text-field>
@@ -272,7 +257,15 @@
                     
 
                 </div>
+                <div id="option-panel" role="tabpanel" aria-labelledby="option-tab" hidden>
+                    <md-outlined-select label="Select option..." id="options-menu">
+                    </md-outlined-select>
+                    <br><br>
+                    <md-divider></md-divider>
+                    <div id="dialog-options-tab-data"></div>
+                </div>
             </div>
+           
             <div slot="actions">
                <md-text-button id="dialog-close-button">Close</md-text-button>
             </div>

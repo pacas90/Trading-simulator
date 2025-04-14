@@ -4,8 +4,8 @@ import { GlobalStockList } from "./stock.js";
 import { BuyDialog, RecentTransactions} from "./ui.js";
 import { Order } from "./stock.js";
 import { orderType } from "./stock.js";
-
-
+import { Option } from "./stock.js";
+import { optionType } from "./stock.js";
 const user = new User();
 const stockList = new GlobalStockList();
 const broker = new Broker();
@@ -19,10 +19,21 @@ user.putStocksToPortfolioTable();
 user.putLimitOrdersToTable();
 
 const recentTransactions = new RecentTransactions();
+window.onload = () => user.realizeOptions();
+//OPTIONS TESTAVIMAS - pradzia
 
 
+//const optionList = broker.generateOptions(stockList.getStock(0).name);
+//console.log(optionList);
+ //broker.PurchaseOption(optionList[0]);
+ //broker.PurchaseOption(optionList[1]);
+ //broker.PurchaseOption(optionList[7]);
+//user.printUserOptionsToConsole();
+//stockList.UpdateStockPrice("AAPL",145);
+//user.realizeOptions();
+//user.printUserOptionsToConsole();
 
-
+//OPTION TESTAVIMAS - pabaiga
 
 // pagr. navigacijos buttonai
 const navButtons = document.querySelectorAll('.nav-bar-buttons'); //navigacijos mygtukai

@@ -280,6 +280,10 @@ export const orderType = {
     SELL: "LIMIT SELL",
     SHORT: "SHORT"       
 };
+export const optionType = {
+    PUT: "put",
+    CALL: "call"
+};
 export class Broker{
 
     constructor(){
@@ -413,14 +417,43 @@ export class Broker{
     }
     //duodam stock name, grazina sarasa options pagal kuri ir bus perkama;
     generateOptions(stockName){
-        const optionCount = Math.max(Math.floor(Math.random*25),10);
+        const optionCount = Math.max(Math.floor(Math.random()*25),10);
+        
+        this.optionList = [];
         for(let i = 0;i<optionCount;i++){
             const currentPrice = this.stockList.findStockByName(stockName).price;
-            const newOptionStrike = currentPrice+(Math.floor(Math.random*30));
-            const timeValue = (Math.floor(Math.random*30)+1);
+            const newPriceRangeValue =(Math.floor(Math.random()*30))+1;
+            let percetangePriceRange;
+            let newOptionStrike;
+            const timeValue = (Math.floor(Math.random()*30)+1);
             const newExpiryDate = new Date().getTime()+(timeValue*30*24*60*60*1000);
-            const premiumPrice =Math.max((currentPrice-newOptionStrike)*0.5,0)+(timeValue*0.5);
-            optionList[i] = new Option();
+            let premiumPrice;
+            let selectedType;
+            if(i%2==0){
+                percetangePriceRange= ((newPriceRangeValue/100)+1);
+                newOptionStrike= currentPrice*percetangePriceRange;
+                premiumPrice =Math.max((currentPrice*(0.35-(percetangePriceRange-1)))*0.5,0)+(timeValue*0.2);
+                selectedType = optionType.CALL;
+            }
+            else{
+                percetangePriceRange= (1-(newPriceRangeValue/100));
+                newOptionStrike= currentPrice*percetangePriceRange;
+                premiumPrice =Math.max((currentPrice*(0.35-(1-percetangePriceRange)))*0.5,0)+(timeValue*0.2);
+                selectedType = optionType.PUT;
+            }
+            
+            this.optionList.push(new Option(newOptionStrike,stockName,premiumPrice,newExpiryDate,selectedType));
+        }
+        return this.optionList;
+    }
+    // nuperka option duoti reikia Option objekta -> new Option(strikePrice,stockName,premium,expiryDate,optionType);
+    PurchaseOption(option){
+        if(this.user.getBalance()>=option.premium){
+            this.user.addOption(option);
+            this.user.removeBalance(option.premium);
+        }
+        else{
+            console.log("Not enough balance to purhcase option");
         }
     }
 }
@@ -439,10 +472,7 @@ export class Order{
         this.orderType = orderType;
     }
 }
-export const optionType = {
-    PUT: "put",
-    CALL: "call"
-}
+
 export class Option{
     constructor(strikePrice,stockName,premium,expiryDate,optionType){
         this.strikePrice = strikePrice;
@@ -459,19 +489,26 @@ export class Option{
         const currentDate = new Date();
         const user = new User();
         if(this.isExpired(currentDate.getTime())){
-            
             const stock = stocklist.findStockByName(this.stockName);
                 
             if(this.optionType==optionType.CALL){
                 if(stock.price>this.strikePrice){
                     const priceDiff = stock.price-this.strikePrice;
                     user.addBalance(priceDiff);
+                    user.removeOption(this);
+                }
+                else{
+                    user.removeOption(this);
                 }
             }
             else if(this.optionType == optionType.PUT) {
                 if(stock.price<this.strikePrice){
                     const priceDiff = this.strikePrice-stock.price;
                     user.addBalance(priceDiff);
+                    user.removeOption(this);
+                }
+                else{
+                    user.removeOption(this);
                 }
             }
         }

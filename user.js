@@ -2,6 +2,7 @@ import { GlobalStockList } from "./stock.js";
 import { Stock } from "./stock.js";
 import { Broker } from "./stock.js";
 import { Order } from "./stock.js";
+import { Option } from "./stock.js";
 //import Decimal from './node_modules/decimal.js/dist/decimal.min.js'
 //const Decimal = require( './node_modules/decimal.js/dist/decimal.min.js');
 //import { RecentTransactions } from "./ui.js";
@@ -31,6 +32,8 @@ export class User
         this.stocklist = JSON.parse(localStorage.getItem("stockList")) || [];
         this.stockAmounts = JSON.parse(localStorage.getItem("stockAmounts")) || [];
         this.orderList = JSON.parse(localStorage.getItem("orderList")) || [];
+        this.optionList = JSON.parse(localStorage.getItem("optionList")) || [];
+        this.generateOptionObject();
         this.generateStockObject();
         //this.generateDecimalList();
     }
@@ -41,6 +44,13 @@ export class User
             this.newStockList.push(new Stock(this.stocklist[i].name,this.stocklist[i].price,this.stocklist[i].description,this.stocklist[i].volume,this.stocklist[i].marketCap,this.stocklist[i].revenue))
         }
         this.stocklist = this.newStockList;
+    }
+    generateOptionObject(){
+        this.newOptionList = [];
+        for(let i =0;i<this.optionList.length;i++){
+            this.newOptionList.push(new Option(this.optionList[i].strikePrice,this.optionList[i].stockName,this.optionList[i].premium,this.optionList[i].expiryDate,this.optionList[i].optionType))
+        }
+        this.optionList= this.newOptionList;
     }
     //paverciu issaugotuos duomenis is float i decimal
     generateDecimalList(){
@@ -141,9 +151,28 @@ export class User
     // istrina  uzsakyma
     removeOrder(order){
         //console.log("order name "+ order.name);
-        console.log(this.getOrderIndex(order)+" " + order);
+        //console.log(this.getOrderIndex(order)+" " + order);
         this.orderList.splice(this.getOrderIndex(order),1);
         localStorage.setItem("orderList",JSON.stringify(this.orderList));
+    }
+    addOption(option){
+        this.optionList.push(option);
+        localStorage.setItem("optionList",JSON.stringify(this.optionList));
+    }
+    removeOption(order){
+        //console.log("order name "+ order.name);
+        console.log(this.getOptionIndex(order)+" " + order);
+        this.optionList.splice(this.getOptionIndex(order),1);
+        localStorage.setItem("optionList",JSON.stringify(this.optionList));
+    }
+    // pasaukiam kai page refreshina ar atidaro, tai patikrina ar jau praejo laikas tam kad uzdaryti 
+    // option pozicija;
+    realizeOptions(){
+        this.optionList = JSON.parse(localStorage.getItem("optionList")) || [];
+        this.generateOptionObject();
+        for(let i = 0;i<this.optionList.length;i++){
+            this.optionList[i].realizeOption();
+        }
     }
     getOrderIndex(order){
         for(let i=0;i < this.orderList.length;i++){
@@ -151,6 +180,17 @@ export class User
             if(order.stockName==this.orderList[i].stockName&& 
                 order.price==this.orderList[i].price&&
                 order.amount==this.orderList[i].amount && order.orderType==this.orderList[i].orderType){
+                return i;
+            }
+        }
+    }
+    getOptionIndex(option){
+        for(let i=0;i < this.optionList.length;i++){
+            //console.log(order.stockName);
+            if(option.stockName==this.optionList[i].stockName&& 
+                option.strikePrice==this.optionList[i].strikePrice&&
+                option.premium==this.optionList[i].premium && option.optionType==this.optionList[i].optionType && 
+                option.expiryDate==this.optionList[i].expiryDate){
                 return i;
             }
         }
@@ -185,6 +225,13 @@ export class User
         }
         return -1;
         
+    }
+    printUserOptionsToConsole(){
+        for(let i = 0;i<this.optionList.length;i++){
+        //     console.log("strike " +  this.optionList[i].strikePrice+ " name " + this.optionList[i].stockName+
+        //         " premium "+this.optionList[i].premium+ " expiryDate " + this.optionList[i].expiryDate+" type "+this.optionList[i].optionType);
+        }
+        console.log(this.optionList);
     }
     clearUserStocks(){
         

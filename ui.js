@@ -20,6 +20,8 @@ export class BuyDialog {
 
         // this.stockSellPriceElement = document.querySelector('.buy-stock-dialog-content.sell > .dialog-stock-price');
 
+        // this.dialogBg = document.querySelector('.dialog-background[dialog=buy-stock]');
+        // this.dialogContainer = this.dialogBg.querySelector('.dialog-container');
 
          this.buyStockForAmountInput = document.querySelector('#buy-amount-input');
          this.buyStockForInput = document.querySelector("#buy-price-input");
@@ -75,7 +77,6 @@ export class BuyDialog {
 
         this.RecentTransactions = new RecentTransactions();
 
-        //fill values with stockName, price etc., event listeners for buy click
     }
     show() {
         this.dialog.show();
@@ -361,7 +362,7 @@ export class BuyDialog {
                 }
                 
 
-
+                this.fillOptionsTab(this.stockName);
 
                 
 
@@ -370,6 +371,37 @@ export class BuyDialog {
                 this.enableDynamicInputs();
             });
         }
+    }
+    fillOptionsTab(stockName) {
+        const options = broker.generateOptions(stockName);
+        const list = document.querySelector('#options-menu');
+        list.innerHTML = '';
+        for (let i = 0; i < options.length; i++) {
+            const item = document.createElement('md-select-option');
+            item.innerHTML = `
+                 <div slot='headline' value='${i}'>Option ${i+1}</div>
+             `;
+             list.appendChild(item);
+        }
+        const optionsData = document.querySelector('#dialog-options-tab-data');
+        list.addEventListener('change', () => {
+            optionsData.innerHTML = `
+                <p>Expiry date: ${options[list.selectedIndex].expiryDate}</p>
+                <p>Option type: ${options[list.selectedIndex].optionType}</p>
+                <p>Premium: ${options[list.selectedIndex].premium}</p>
+                <p>Stock name: ${options[list.selectedIndex].stockName}</p>
+                <p>Strike price: ${options[list.selectedIndex].strikePrice}</p>
+                <md-divider></md-divider>
+                <br>
+                <md-filled-button id='buy-option-button'>Purchase option</md-filled-button>
+            `;
+            document.querySelector('#buy-option-button').addEventListener('click', ()=> {
+                broker.PurchaseOption(options[list.selectedIndex]);
+               // user.updateOptionsTable();
+            });
+        });
+
+
     }
     updateSellStockInfo() {
         let amount = user.getStockAmount(user.getStockIndexByName(this.stockName));
