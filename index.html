@@ -35,6 +35,10 @@
                 <span class="material-symbols-outlined">shopping_cart</span>
                 <p>Buy/sell</p>
             </md-text-button>
+            <md-text-button value="watchlist" class="nav-bar-buttons">
+                <span class="material-symbols-outlined">add_to_queue</span>
+                <p>Watchlist</p>
+            </md-text-button>
             <md-text-button value="help" class="nav-bar-buttons">
                 <span class="material-symbols-outlined">settings</span>
                 <p>Options</p>
@@ -47,7 +51,7 @@
                     <div id="dashboard-account-value-container">
                         <div id="acc-value-header">
                             <p>TOTAL STOCKS VALUE</p>
-                            <p id="total-account-value"><span>$ </span>+?????</p>
+                            <p id="total-account-value"><span> </span>LOADING...</p>
                         </div>
                         <div>
                             <p>TODAY'S CHANGE</p>
@@ -79,13 +83,16 @@
                                 <md-filter-chip time="7 days">7 days</md-filter-chip>
                             </md-chip-set>
                         </div>
-                    
-                    
-                    
                     </div>
+                    
                 </div>
             </div>
             <div class="nav-content portfolio hidden">
+                
+                <!-- <div id="portfolio-daily-report">
+                    daily report cia
+                </div> -->
+
                 <div id="portfolio-table-wrapper">
                     <table id="portfolio-table">
                         <tbody>
@@ -111,22 +118,12 @@
                                     <td>Price</td>
                                     <td>Amount</td>
                                     <td>Type</td>
+                                    <td style="width:80px;"></td>
                                 </tr>
                                 <!-- <tr><td>No limit orders!</td></tr> -->
                             </tbody>
                         </table>
-                        <!-- <table id="short-orders-table">
-                            <p>Short order list</p>
-                            <tbody>
-                                <tr header="true">
-                                    <td>Name</td>
-                                    <td>Price</td>
-                                    <td>Amount</td>
-                                    <td>Date</td>
-                                </tr>
-                                <tr><td>No short orders!</td></tr>
-                            </tbody>
-                        </table> -->
+                     
                         <table id="stocks-table">
                             <p>Stocks available for sale</p>
                             <tbody>
@@ -142,11 +139,29 @@
                         </table>
                     </div>
             </div>
+
+            <!-- watchlist nav -->
+            <div class="nav-content watchlist hidden">
+                <div id="watchlist-container">
+                    <!-- <div class="watchlist-element-container">
+                        <div class="watchlist-info">
+                            <p class="stock-name">stock</p>
+                            <p>0 $</p>
+                            <p>+5 $</p>
+                        </div>
+                        <div class="watchlist-curve">
+                            <div class="curve-wrapper">
+                                
+                            </div>
+                        </div>
+                    </div> -->
+                </div>
+            </div>
+
+             <!-- wathlist nav end -->
+            </div>
             <div class="nav-content help hidden">
                 <div class="options-tabs">
-                    <!-- <p>Enable light mode</p>
-                    <input id="light-mode-switch" type="checkbox"> -->
-                    
                      <label>
                         Enable light mode 
                         <md-checkbox checked id="light-mode-switch"></md-checkbox>
@@ -173,7 +188,17 @@
 
 
 
-
+        <md-dialog id="cancel-limit-order-dialog">
+            <div slot="headline">Permanently cancel?</div>
+            <md-icon slot="icon">delete_outline</md-icon>
+            <form id="form" slot="content" method="dialog">
+                Are you sure you want to cancel this limit order?
+            </form>
+              <div slot="actions">
+                <md-text-button form="form" value="yes">Yes</md-text-button>
+                <md-filled-tonal-button form="form" value="goback" autofocus>Go back</md-filled-tonal-button>
+            </div>
+        </md-dialog>
 
 
 
@@ -235,6 +260,7 @@
                     <md-text-button type="button" id="sell-all-button">Sell all</md-text-button>
                 </div>
                 <div id="trading-panel" role="tabpanel" aria-labelledby="trading-tab" hidden>
+                    <p style="font-style:italic;">You will be daily charged 0.1 % of premium</p>
                     <p>Short order</p>
                     <div class='inline-flex'>
                         <md-outlined-text-field suffix-text="" min="0" step="0.0001" id="short-order-amount-input" label="Stock amount" type="number"></md-outlined-text-field>
@@ -258,16 +284,22 @@
 
                 </div>
                 <div id="option-panel" role="tabpanel" aria-labelledby="option-tab" hidden>
-                    <md-outlined-select label="Select option..." id="options-menu">
-                    </md-outlined-select>
-                    <br><br>
+                    <br>
+                    <div class="inline-flex">
+                        <md-outlined-select label="Select option..." id="options-menu">
+                        </md-outlined-select>
+                        <md-filled-button id='buy-option-button'>Purchase option</md-filled-button>
+                    </div>
+                    <br>
+                    <p id="option-stock-name"></p>
                     <md-divider></md-divider>
-                    <div id="dialog-options-tab-data"></div>
+                    <table id="available-options-table"></table>
                 </div>
             </div>
            
             <div slot="actions">
-               <md-text-button id="dialog-close-button">Close</md-text-button>
+                <md-text-button id="dialog-watchlist-button">Add to watchlist</md-text-button>
+                <md-text-button id="dialog-close-button">Close</md-text-button>
             </div>
         </md-dialog>
 

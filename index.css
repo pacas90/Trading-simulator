@@ -90,7 +90,9 @@ body {
     --surface-highest: #e8e0e8;
     --outline: #968e98;
 }
+
 :root {
+   
     --md-elevation-level: 3;
 
     color: var(--text-primary);
@@ -709,7 +711,7 @@ home tabas
     overflow-y: scroll;
 }
 #dashboard-transactions-container::-webkit-scrollbar {
-    width: 0 !important;
+    /* width: 0 !important; */
 }
  .transaction-info-container {
     width: 100%;
@@ -891,16 +893,16 @@ md-secondary-tab {
     gap: 10px;
 }
 .dialog-expand {
-    width: 600px;
-    height: 600px;
+    width: 600px!important;
+    height: 600px!important;
 }
 
-md-dialog {
+#buy-sell-dialog {
     height: 350px;
     width: 400px;
     transition: width 0.2s, height 0.2s;
 }
-div[slot='headline'] {
+#buy-sell-dialog > div[slot='headline'] {
     margin: 0;
     padding: 0;
 }
@@ -964,4 +966,90 @@ form[slot='content'] {
 .tracking-dot {
     filter: drop-shadow(0 0 2px rgba(0,0,0,0.3));
     transition: all 0.1s ease-out;
+}
+
+#available-options-table {
+    text-align: center;
+    border-collapse: collapse;
+    margin-top: 10px;
+    width: 100%;
+}
+#available-options-table tr {
+    height: 50px;
+}
+#available-options-table th {
+    font-weight: bold;
+    border-bottom: 1px solid var(--outline);
+}
+#available-options-table td {
+    border-bottom: 1px solid var(--outline);
+}
+
+/* #portfolio-daily-report {
+    width: 80%;
+    height: 200px;
+    background-color: var(--surface-lowest);
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    transform: translateX(-50%);
+    margin-left: 50%;
+    margin-top: 30px;
+} */
+
+.watchlist {
+    overflow-y: scroll;
+    
+}
+#watchlist-container {
+    width: 90%;
+    height: 90%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: grid;
+    grid-template-columns: 50% 50%;
+    grid-template-rows: 50% 50%;
+    
+}
+.watchlist-element-container {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    background-color: var(--surface-lowest);
+    border-radius: 10px;
+    padding: 15px;
+    width: 95%;
+    height: 95%;
+    position: relative;
+}
+.watchlist-info {
+    width: 80%;
+    height: 20px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+.watchlist-curve {
+    width: 100%;
+    height: calc(100% - 90px);
+    
+}
+
+.watchlist-curve > .curve-wrapper {
+    width: 100%;
+    height: 100%;
+}
+.watchlist-notify-container {
+    width: 90%;
+    height: 30px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    position: absolute;
+    bottom: 30px;
+    
+}
+.watchlist-notify-container > .input {
+    height: 30px;
 }

@@ -1,4 +1,5 @@
 import { User } from "./user.js";
+import { Watchlist } from "./user.js";
 import { Broker } from "./stock.js";
 import { GlobalStockList } from "./stock.js";
 import { BuyDialog, RecentTransactions} from "./ui.js";
@@ -9,6 +10,7 @@ import { optionType } from "./stock.js";
 const user = new User();
 const stockList = new GlobalStockList();
 const broker = new Broker();
+const watchList = new Watchlist();
 
 
 stockList.loadStockInfo();
@@ -20,8 +22,14 @@ user.putLimitOrdersToTable();
 
 const recentTransactions = new RecentTransactions();
 window.onload = () => user.realizeOptions();
-//OPTIONS TESTAVIMAS - pradzia
+window.onload = () => broker.UpdateLimitOrders();
+window.onload = () => user.chargeDailyShortPremiums();
 
+//setInterval(() => this.fetchStockInfo(), 65000);
+watchList.comparePrices();
+setInterval(() => watchList.comparePrices(), 300000);
+//OPTIONS TESTAVIMAS - pradzia
+//user.addBalance(20);
 
 //const optionList = broker.generateOptions(stockList.getStock(0).name);
 //console.log(optionList);
@@ -32,7 +40,7 @@ window.onload = () => user.realizeOptions();
 //stockList.UpdateStockPrice("AAPL",145);
 //user.realizeOptions();
 //user.printUserOptionsToConsole();
-
+console.log(user.optionList);
 //OPTION TESTAVIMAS - pabaiga
 
 // pagr. navigacijos buttonai
@@ -48,6 +56,7 @@ navButtons.forEach(button => {
         button.classList.add('nav-bar-buttons-active');
         document.querySelector(`.nav-content.${button.getAttribute('value')}`).classList.remove('hidden');
         content[0].scrollTop = 0;
+        //watchList.comparePrices();
     });
 });
 
@@ -161,12 +170,12 @@ for (let j = 0; j < 90; j++) {
 if (myStocks != null) {
 for (let i = 0; i < myStocks.length; i++)
     {
-        let name = myStocks[i].name;
-        let hist = JSON.parse(localStorage.getItem(`${name}_hist`));
+        let Name = myStocks[i].name;
+        let Hist = JSON.parse(localStorage.getItem(`${Name}_hist`));
         //console.log(hist);
         for (let j = 0; j < 90; j++) 
         {
-            prices[j] += parseFloat(hist[j].close)*user.getStockAmount(user.getStockIndexByName(name));
+            prices[j] += parseFloat(Hist[j].close)*user.getStockAmount(user.getStockIndexByName(Name));
         }
     }
 }
@@ -212,7 +221,6 @@ todaysChangePercentage.style.color = changeColor;
 
 
 
-
 const curveContainer = document.querySelector('#dashboard-graph-container > .curve-wrapper');
 
 var curve = new Curve(600,300, curveContainer);
@@ -248,3 +256,9 @@ for (let i = 0; i < timeChips.length; i++) {
         
     });
 }
+
+
+
+
+
+

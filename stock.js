@@ -92,7 +92,9 @@ export class GlobalStockList
                 cell.classList.add('description');
             }
             
+
             cell.textContent = data[i];
+
             row.appendChild(cell);
         }
         row.classList.add('stocks-table-row');
@@ -286,10 +288,15 @@ export const optionType = {
 };
 export class Broker{
 
-    constructor(){
+    constructor(user = null) {
         this.stockList = new GlobalStockList();
-        this.user = new User();
         this.orderList = [];
+
+        if (user) {
+            this.user = user;
+        } else {
+            this.user = new User();
+        }
     }
     /**
      * Pirkimas duotos akcijos uz duota pinigu suma.
@@ -383,7 +390,7 @@ export class Broker{
     // is UI limit orderiu listo paspaudus pasauktum sita klase su orderiu CancelLimitOrder(new Order(t.t)) <- info i ji is UI gali paduoti
     // price, amount,stockname, orderType;
     CancelLimitOrder(order){
-        
+        //console.log(order);
         const stock = this.stockList.findStockByName(order.stockName);
         if(order.orderType==orderType.SELL){
         this.user.addStock(stock,order.amount);
@@ -393,7 +400,7 @@ export class Broker{
         }else if(order.orderType==orderType.SHORT){
             this.CloseShortOrder(order);
         }
-        this.user.removeOrder(order);
+        if(order.orderType!=orderType.SHORT)this.user.removeOrder(order);
     }
     // patikrina ar limit orderis patenka i reikiama kaina pardavimo/pirkimo, atnaujinant akciju kaina reikia pasaukti sita metoda
     UpdateLimitOrders(){
@@ -424,25 +431,25 @@ export class Broker{
             const currentPrice = this.stockList.findStockByName(stockName).price;
             const newPriceRangeValue =(Math.floor(Math.random()*30))+1;
             let percetangePriceRange;
-            let newOptionStrike;
+            let NewOptionStrike;
             const timeValue = (Math.floor(Math.random()*30)+1);
-            const newExpiryDate = new Date().getTime()+(timeValue*30*24*60*60*1000);
+            const newExpiryDate = new Date().getTime()+(timeValue*24*60*60*1000);
             let premiumPrice;
             let selectedType;
             if(i%2==0){
                 percetangePriceRange= ((newPriceRangeValue/100)+1);
-                newOptionStrike= currentPrice*percetangePriceRange;
+                NewOptionStrike= currentPrice*percetangePriceRange;
                 premiumPrice =Math.max((currentPrice*(0.35-(percetangePriceRange-1)))*0.5,0)+(timeValue*0.2);
                 selectedType = optionType.CALL;
             }
             else{
                 percetangePriceRange= (1-(newPriceRangeValue/100));
-                newOptionStrike= currentPrice*percetangePriceRange;
+                NewOptionStrike= currentPrice*percetangePriceRange;
                 premiumPrice =Math.max((currentPrice*(0.35-(1-percetangePriceRange)))*0.5,0)+(timeValue*0.2);
                 selectedType = optionType.PUT;
             }
             
-            this.optionList.push(new Option(newOptionStrike,stockName,premiumPrice,newExpiryDate,selectedType));
+            this.optionList.push(new Option(NewOptionStrike,stockName,premiumPrice,newExpiryDate,selectedType));
         }
         return this.optionList;
     }

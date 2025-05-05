@@ -3,6 +3,9 @@ import { Stock } from "./stock.js";
 import { Broker } from "./stock.js";
 import { Order } from "./stock.js";
 import { Option } from "./stock.js";
+import { orderType } from "./stock.js";
+import { Curve } from "./curve.js";
+import { Notifications } from "./snackbar.js";
 //import Decimal from './node_modules/decimal.js/dist/decimal.min.js'
 //const Decimal = require( './node_modules/decimal.js/dist/decimal.min.js');
 //import { RecentTransactions } from "./ui.js";
@@ -25,17 +28,49 @@ export class User
         else
         {
             this.balance = parseFloat(storedBalance);
-           
-           
         }
         document.querySelector("#money-balance").textContent = `${this.balance.toFixed(2)} `;
         this.stocklist = JSON.parse(localStorage.getItem("stockList")) || [];
         this.stockAmounts = JSON.parse(localStorage.getItem("stockAmounts")) || [];
         this.orderList = JSON.parse(localStorage.getItem("orderList")) || [];
         this.optionList = JSON.parse(localStorage.getItem("optionList")) || [];
+        this.shortUpdateTime = localStorage.getItem("shortOrderTime");
         this.generateOptionObject();
         this.generateStockObject();
         //this.generateDecimalList();
+    }
+    // short orderiu pozicijai mokamas mokestis
+    chargeDailyShortPremiums(){
+        const oneDay = 24*60*60*1000;
+        const date = Date.now();
+        //const date = Date.now()+(2*oneDay); // sitas testavimui
+        const globalStockList = new GlobalStockList();
+        // cia fixed skaicius % kuri naudojam kiek daily reik moket short orderio pozicijai;
+        const premiumDailyFee=0.001;
+        if(this.shortUpdateTime == null || date-this.shortUpdateTime>=oneDay){
+            var notif = new Notifications({
+                icon: "close",
+                text: `<p>Being Charged Daily Premiums for held Short Positions!</p>`,
+              });
+              notif.show();
+            for(let i = 0;i<this.orderList.length;i++){
+                if(this.orderList[i].orderType==orderType.SHORT){
+                    const daysPassed = Math.floor((date - this.shortUpdateTime) / oneDay);
+                    const stock = globalStockList.findStockByName(this.orderList[i].stockName);
+                    console.log(stock);
+                    const value = this.orderList[i].amount*stock.price;
+                    let premium = value * premiumDailyFee * daysPassed;
+                    if(premium>this.balance) {
+                        const broker = new Broker(this);
+                        broker.CloseShortOrder(this.orderList[i]);
+                    }
+                    premium = this.balance;
+                    this.removeBalance(premium);  
+                }
+            }
+            this.shortUpdateTime = Date.now();
+            localStorage.setItem("shortOrderTime",this.shortUpdateTime);
+        }
     }
     // atkuriam stock objektus po issaugojimo is Stringu
     generateStockObject(){
@@ -152,8 +187,12 @@ export class User
     removeOrder(order){
         //console.log("order name "+ order.name);
         //console.log(this.getOrderIndex(order)+" " + order);
+        const index = this.getOrderIndex(order);
+        if(index!=-1){
         this.orderList.splice(this.getOrderIndex(order),1);
         localStorage.setItem("orderList",JSON.stringify(this.orderList));
+        }
+        else console.log("order not found");
     }
     addOption(option){
         this.optionList.push(option);
@@ -183,6 +222,7 @@ export class User
                 return i;
             }
         }
+        return -1;
     }
     getOptionIndex(option){
         for(let i=0;i < this.optionList.length;i++){
@@ -329,6 +369,7 @@ export class User
         const portfolioHeaderRow = document.querySelector('#portfolio-table > tbody > tr[header=true]');
         this.sortTable(portfolioHeaderRow, portfolioRows);  
     }
+    
     updatePortfolio() {
         const row = document.querySelectorAll('.portfolio-table-row');
         //clear table
@@ -379,6 +420,9 @@ export class User
         this.putLimitOrdersToTable();
 
     }
+    updateOptionsTable() {
+        
+    }
 
     putLimitOrdersToTable() {
         let orders = JSON.parse(localStorage.getItem('orderList'));
@@ -398,11 +442,302 @@ export class User
             const cell = document.createElement('td');
             cell.textContent = data[i];
             row.appendChild(cell);
-            
         }
+        const buttonCell = document.createElement('td');
+        buttonCell.style.width = '80px';
+        if (date === "LIMIT BUY" || date === "LIMIT SELL" || date === "SHORT") {
+            const button = document.createElement("md-icon-button");
+            button.innerHTML = `<md-icon>close</md-icon>`;
+            buttonCell.appendChild(button);
+
+            button.addEventListener("click", async ()=> {
+                const dialog = document.querySelector("#cancel-limit-order-dialog");
+
+                const returnValue = await new Promise((resolve) => {
+                    const handler = (event) => {
+                        dialog.removeEventListener("closed", handler);
+                        resolve(event.target.returnValue);
+                    };
+                    dialog.addEventListener("closed", handler);
+                    dialog.open = true; 
+                });
+            
+                if (returnValue === "yes") {
+                    const broker = new Broker(this);
+                    broker.CancelLimitOrder(new Order(price, amount,name, date));
+                    this.updateLimitOrderTable();
+                }
+
+            });
+        }
+        row.appendChild(buttonCell);
         row.classList.add('limit-orders-table-row');
         table.appendChild(row)
     }    
-}   
+}
+
+export class Watchlist
+{
+    constructor()
+    {
+        this.stocks = JSON.parse(localStorage.getItem("watchedStocks")) || [];
+        if(this.stocks.length==0||this.stocks==null)
+        {
+            localStorage.setItem("watchedStocks", JSON.stringify(this.stocks));
+        }
+        else
+        {
+            // this.stocks.forEach(stock =>{
+            //     this.addToTable(stock);
+            // })   
+        }
+        // this.updateButtonListener();
+    }
+    init() {
+        this.stocks.forEach(stock =>{
+            this.addToTable(stock);
+        });
+        this.updateButtonListener();
+    }
+    updateButtonListener() {
+      //  <md-text-button value="watchlist" class="nav-bar-buttons">
+        const button = document.querySelector(".nav-bar-buttons[value='watchlist']");
+        button.addEventListener("click", () => {
+            this.updateInfo();
+        });
+    }
+    Update() {
+        const container = document.querySelector("#watchlist-container");
+        container.innerHTML = "";
+        this.stocks.forEach(stock =>{
+            this.addToTable(stock);
+        });
+    }
+    Add(stock)
+    {
+        this.stocks.push(stock);
+        localStorage.setItem("watchedStocks", JSON.stringify(this.stocks));
+
+        this.addToTable(stock);
+    }
+    findIndex(stockName)
+    {
+        for(let i = 0; i < this.stocks.length; i++)
+            if(this.stocks[i] == stockName)
+                return i;
+        return -1;
+    }
+    Remove(stockName)
+    {
+        let index = this.findIndex(stockName)
+        if(index != -1)
+        {
+            this.stocks.splice(index,1);
+            localStorage.setItem("watchedStocks", JSON.stringify(this.stocks));
+        }
+    }
+    updateStock(stock)
+    {
+        let index = findStockByName(stock)
+        if (index != -1)
+        {
+            this.stocks[index] = stock;
+            localStorage.setItem("watchedStocks", JSON.stringify(this.stocks));
+        }
+    }
+    updateInfo()
+    {
+        let allStockInfo = JSON.parse(localStorage.getItem("globalStockList"));
+        this.stocks.forEach(stock =>{
+            let matchedStock = allStockInfo.find(s => s.name == stock.name);
+            if(matchedStock)
+            {
+                stock.price = matchedStock.price;
+            }
+        })
+    }
+
+    getStockHistory(stockName, amount)
+    {
+        let hist = JSON.parse(localStorage.getItem(`${stockName}_hist`));
+        let stockHistory = [];
+
+        for(let i = 0; i < amount; i++) // stockHistory[0] - latest price
+        {
+            stockHistory[i] = parseFloat(hist[i].close);
+        }
+        return stockHistory;
+    }
+    comparePrices()
+    {
+        let allStockInfo = JSON.parse(localStorage.getItem("globalStockList"));
+        let notifStocks = JSON.parse(localStorage.getItem("notificationStocks"));
+
+        notifStocks.forEach(stock => {
+            let matchedStock = allStockInfo.find(s => s.name == stock.name);
+            if(matchedStock.price <= stock.price)
+            {
+                    sendNotif(`Price of ${stock.name} has reached ${matchedStock.price} USD`);
+                    setTimeout(() => {}, 5000);
+            }
+        })
+
+        function sendNotif(data) {
+            if (Notification.permission === "granted") {
+                new Notification("TradingSim", { body: data });
+              } else if (Notification.permission !== "denied") {
+                Notification.requestPermission().then(permission => {
+                  if (permission === "granted") {
+                    new Notification("TradingSim", { body: data });
+                  }
+                });
+            }
+        }    
+    }
+    addToTable(stockName) {
+        const container = document.querySelector("#watchlist-container");
+        const price = this.getStockHistory(stockName, 1);
+        const priceDiff = (price - this.getStockHistory(stockName, 2)[1]).toFixed(2);
+        const priceDiffDisplay = priceDiff > 0 ? `<span style="color:green;">+${priceDiff} $</span>` : `<span style="color:red;">${priceDiff} $</span>`;
+
+        const elem = document.createElement("div");
+
+        elem.classList.add("watchlist-element-container");
+        elem.innerHTML = `
+            <md-icon-button id="watchlist-remove-${stockName}" style="position:absolute;right:15px;">
+                <md-icon>close</md-icon>
+            </md-icon-button>
+            <div class="watchlist-info">
+                <p class="stock-name">${stockName}</p>
+                <p>${price} $</p>
+                <p>Today: ${priceDiffDisplay}</p>
+            </div>
+            
+            <div class="watchlist-curve">
+                <div id="watchlist-curve${stockName}" class="curve-wrapper">
+                    
+                </div>
+            </div>
+            <div class="watchlist-notify-container">
+                <p>Notify if price is lower than</p>
+                <md-outlined-text-field min="0" step="0.01" prefix-text="$" id="notify-price${stockName}" type="number"></md-outlined-text-field>
+                <label>
+                    <md-checkbox id="notify-checkbox${stockName}"></md-checkbox>
+                </label> 
+            </div>
+        `;
+        
+        container.appendChild(elem);
+
+        document.querySelector("#watchlist-remove-"+stockName).addEventListener("click", () => {
+            this.Remove(stockName);
+            this.Update();
+        });
+        const checkbox = document.querySelector("#notify-checkbox"+stockName);
+
+
+        let raw = localStorage.getItem("notificationStocks");
+        let storageList = [];
+
+        try {
+        storageList = raw ? JSON.parse(raw) : [];
+        } catch (e) {
+        storageList = [];
+        }
+
+        let match = storageList.find(s => s.name === stockName);
+        if (match) {
+            checkbox.checked = true;
+            
+        }
+
+
+        
+        const input = document.querySelector("#notify-price"+stockName);
+        input.value = price;
+        checkbox.addEventListener("change", () => {
+            
+
+            if (input.value == "") {
+                // tuscia
+
+                var notif = new Notifications({
+                    icon: "sentiment_dissatisfied",
+                    text: `<p>Enter price first!</p>`,
+                });
+                notif.show();
+                checkbox.checked = false;
+            }
+            else if (checkbox.checked) {
+                
+                //stockName, input.value === name ir kaina
+                //localStorage.add()
+
+                // let storageList = JSON.parse(localStorage.getItem("notificationStocks")) || [];
+                // let match = storageList.find(s => s.name === stockName);
+                // if(!match)
+                // {
+                //     let stock = { name: stockName, price: input.value };
+                //     storageList.push(stock);
+                // }
+                // localStorage.setItem("notificationStocks", JSON.stringify(storageList));
+
+                let raw = localStorage.getItem("notificationStocks");
+                let storageList = [];
+
+                try {
+                storageList = raw ? JSON.parse(raw) : [];
+                } catch (e) {
+                storageList = [];
+                }
+
+                let match = storageList.find(s => s.name === stockName);
+                if (!match) {
+                let stock = { name: stockName, price: input.value };
+                storageList.push(stock);
+                }
+
+                localStorage.setItem("notificationStocks", JSON.stringify(storageList));
+
+
+                var notif = new Notifications({
+                    icon: "mood",
+                    text: `<p>Now you will be getting browser notifications for <span class="stock-name">${stockName}</span>!</p>`,
+                });
+                notif.show();
+
+
+            }
+            else if (!checkbox.checked) {
+                //remove notif
+                let storageList = JSON.parse(localStorage.getItem("notificationStocks"));
+                let index = storageList.findIndex(s => s.name === stockName);
+                if(index != -1)
+                    storageList.splice(index,1);
+                localStorage.setItem("notificationStocks", JSON.stringify(storageList));
+
+
+                
+                var notif = new Notifications({
+                    icon: "sentiment_dissatisfied",
+                    text: `<p>Browser notifications cancelled.</p>`,
+                });
+                notif.show();
+            }
+        });
+
+        let curveWrapper = document.querySelector(`#watchlist-curve${stockName}`);
+        curveWrapper.innerHTML = '';
+        const buyCurve = new Curve(700,250, curveWrapper);
+        let points = this.getStockHistory(stockName, 30);
+        buyCurve.drawCurve(
+            points.slice(0, 30).map((price, index) => ({ x: 30 - index, y: Math.round(price) }))
+        );
+
+    }
+
+    
+
+}
 
 

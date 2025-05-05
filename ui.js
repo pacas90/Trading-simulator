@@ -1,11 +1,15 @@
 /***** issokstanti buy lentele *****/
 import { Broker, GlobalStockList } from "./stock.js";
-import { User } from "./user.js";
+import { User, Watchlist } from "./user.js";
 import {Curve} from "./curve.js";
+import {Notifications} from "./snackbar.js";
 
 const user = new User();
+const watchlist = new Watchlist();
+watchlist.init();
 const globalStockList = new GlobalStockList();
 const broker = new Broker();
+
 
 export class BuyDialog {
     constructor() {
@@ -58,7 +62,16 @@ export class BuyDialog {
             const selectedId = e.target.activeTab.id;
             panels.forEach(panel => {
                 panel.hidden = panel.getAttribute('aria-labelledby') !== selectedId;
+                
             });
+            if (selectedId === 'option-tab') {
+                this.dialog.classList.add('dialog-expand');
+            }
+            else {
+                this.dialog.classList.remove('dialog-expand');
+                document.querySelector('#buy-graph-container').classList.add('hidden');
+                document.querySelector('#show-graph-switch').selected = false;
+            }
         });
         document.querySelector('#dialog-close-button').addEventListener('click', () => {
             this.hide();
@@ -74,9 +87,30 @@ export class BuyDialog {
         this.sellButtonListener();
         this.limitOrderButtonsListeners();
         this.shortOrderButtonsListeners();
+        this.addToWatchlistListener();
 
         this.RecentTransactions = new RecentTransactions();
 
+    }
+    addToWatchlistListener() {
+        const button = document.querySelector("#dialog-watchlist-button");
+        button.addEventListener('click', () => {
+            if (watchlist.findIndex(this.stockName) == -1) {
+                watchlist.Add(this.stockName);
+                var notif = new Notifications({
+                    icon: "mood",
+                    text: `<p><span class="stock-name">${this.stockName}</span> has been added to your watchlist!</p>`,
+                });
+                notif.show();
+            }
+            else {
+                var notif = new Notifications({
+                    icon: "sentiment_dissatisfied",
+                    text: `<p><span class="stock-name">${this.stockName}</span> is already in the watchlist!!!</p>`,
+                });
+                notif.show();
+            }
+        });
     }
     show() {
         this.dialog.show();
@@ -158,7 +192,7 @@ export class BuyDialog {
     buyButtonListener() {
         this.buyButton.addEventListener('click', () => {
             if (this.buyStockForInput.value == 0 && this.buyStockForAmountInput.value == 0) {
-                var notif = new Notification({
+                var notif = new Notifications({
                     icon: "close",
                     text: `<p>Empty values!</p>`,
                   });
@@ -178,8 +212,8 @@ export class BuyDialog {
                 this.RecentTransactions.addToList(this.stockName, this.buyStockForAmountInput.value, this.buyStockForInput.value,`${date.getFullYear()}-0${date.getMonth() + 1}-${date.getDate()}`);
              //  this.RecentTransactions.putInTable(transaction);
                 this.updateSellStockInfo();
-                //show notification with info of buying
-                var notif = new Notification({
+                //show Notifications with info of buying
+                var notif = new Notifications({
                     icon: "check",
                     text: `<p>You have bought ${this.buyStockForAmountInput.value}
                             <span class='stock-name'>${this.stockName}</span>  
@@ -193,7 +227,7 @@ export class BuyDialog {
             }
             else {
                 console.log(`BALANCE INSUFFICIENT (${user.getBalance()} USD < ${this.buyStockForInput.value})`);
-                var notif = new Notification({
+                var notif = new Notifications({
                     icon: "priority_high",
                     text: `<p>Insufficient funds! You have only ${user.getBalance().toFixed(2)} 
                             <span class='stock-name'>USD</span>!</p>`,
@@ -208,7 +242,7 @@ export class BuyDialog {
     sellButtonListener() {
         this.sellButton.addEventListener('click', () => {
             if (this.sellStockForInput.value == 0 && this.sellStockForAmountInput.value == 0) {
-                var notif = new Notification({
+                var notif = new Notifications({
                     icon: "close",
                     text: `<p>Empty values!</p>`,
                   });
@@ -230,7 +264,7 @@ export class BuyDialog {
               //  this.RecentTransactions.putInTable(transaction);
                 this.updateSellStockInfo();
                 // show notif with sell info
-                var notif = new Notification({
+                var notif = new Notifications({
                     icon: "check",
                     text: `<p>You have sold ${this.sellStockForAmountInput.value}
                             <span class='stock-name'>${this.stockName}</span>  
@@ -247,7 +281,7 @@ export class BuyDialog {
                 else {
                     val = user.getStockAmount(user.getStockIndexByName(this.stockName)).toFixed(5);
                 }
-                var notif = new Notification({
+                var notif = new Notifications({
                     icon: "priority_high",
                     text: `<p>Insufficient stocks! You have only
                             ${val}
@@ -277,7 +311,7 @@ export class BuyDialog {
                 user.updatePortfolio();
                 this.stocksTableListeners();
                 this.hide();
-                var notif = new Notification({
+                var notif = new Notifications({
                     icon: "check",
                     text: `<p>You have sold ${amount.toFixed(5)}
                             <span class='stock-name'>${this.stockName}</span>  
@@ -383,24 +417,45 @@ export class BuyDialog {
              `;
              list.appendChild(item);
         }
-        const optionsData = document.querySelector('#dialog-options-tab-data');
-        list.addEventListener('change', () => {
-            optionsData.innerHTML = `
-                <p>Expiry date: ${options[list.selectedIndex].expiryDate}</p>
-                <p>Option type: ${options[list.selectedIndex].optionType}</p>
-                <p>Premium: ${options[list.selectedIndex].premium}</p>
-                <p>Stock name: ${options[list.selectedIndex].stockName}</p>
-                <p>Strike price: ${options[list.selectedIndex].strikePrice}</p>
-                <md-divider></md-divider>
-                <br>
-                <md-filled-button id='buy-option-button'>Purchase option</md-filled-button>
-            `;
-            document.querySelector('#buy-option-button').addEventListener('click', ()=> {
-                broker.PurchaseOption(options[list.selectedIndex]);
-               // user.updateOptionsTable();
-            });
-        });
 
+        document.querySelector("#option-stock-name").innerHTML = `Selected stock: <span class='stock-name'>${options[0].stockName}</span>`;
+
+        const table = document.querySelector("#available-options-table");
+
+        let tbodyContent = '';
+        for (let i = 0; i < options.length; i++) {
+            const date = new Date(options[i].expiryDate);
+            const readable = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
+
+            tbodyContent += `
+                <tr>
+                    <th scope="row">Option ${i+1}</th>
+                    <td>${readable}</td>
+                    <td>${options[i].optionType}</td>
+                    <td>${options[i].premium.toFixed(3)}</td>
+                    <td>${options[i].strikePrice.toFixed(3)}</td>
+                </tr>
+            `;
+        }
+
+        table.innerHTML = `
+            <thead>
+                <th></th>
+                <th>Expiry date</th>
+                <th>Option type</th>
+                <th>Premium</th>
+                <th>Strike price</th>
+            </thead>
+            <tbody>
+                ${tbodyContent}    
+            </tbody>
+        `;
+
+
+        document.querySelector('#buy-option-button').addEventListener('click', ()=> {
+            broker.PurchaseOption(options[list.selectedIndex]);
+            user.updateOptionsTable();
+        });
 
     }
     updateSellStockInfo() {
@@ -547,60 +602,60 @@ export class RecentTransactions {
 }
 
 /* ------- buy/sell pranesimai -------*/
-export class Notification {
-    constructor(data) {
+// export class Notification {
+//     constructor(data) {
 
-        this.notif = document.createElement('div');
-        this.notif.classList = 'notification-container hidden';
+//         this.notif = document.createElement('div');
+//         this.notif.classList = 'notification-container hidden';
         
-        this.notif.innerHTML = `
-             <div class="notification-icon-container">
-                <span class='material-symbols-outlined'>${data.icon}</span>
-             </div>
-             <div class="notification-text-container">${data.text}</div>
-             <div class="notification-button-container">
-                <button style='display:none;'>${data.button}</button>
-             </div>
-        `;
-        this.data = data;
-        document.body.appendChild(this.notif);
+//         this.notif.innerHTML = `
+//              <div class="notification-icon-container">
+//                 <span class='material-symbols-outlined'>${data.icon}</span>
+//              </div>
+//              <div class="notification-text-container">${data.text}</div>
+//              <div class="notification-button-container">
+//                 <button style='display:none;'>${data.button}</button>
+//              </div>
+//         `;
+//         this.data = data;
+//         document.body.appendChild(this.notif);
 
-        if(data.x != undefined || data.y != undefined) {
-            this.notif.classList = 'notification-container hidden';
-        }
-        else this.notif.classList = 'notification-container notifTranslate hidden';
-    }
-    show() {
-        /*const otherNotifs = document.querySelectorAll('.notification-container');
-        if (otherNotifs.length > 1) {
-            for (let i = 0; i < otherNotifs.length; i++) {
-                if (otherNotifs[i] === this.notif) continue;
-                for (let j = 0; j < otherNotifs[i].length; j++) {
-                    otherNotifs[j].classList = 'notification-container';
-                }
-                otherNotifs[i].classList.add(`notif${i+1}`);
-            }
-        }*/
-        const allNotifs = document.querySelectorAll('.notification-container');
-        if(allNotifs.length > 1) {
-            allNotifs.forEach(notifs => {
-                if (this.notif !== notifs) {
-                    notifs.remove();
-                }
-            });
-        }
+//         if(data.x != undefined || data.y != undefined) {
+//             this.notif.classList = 'notification-container hidden';
+//         }
+//         else this.notif.classList = 'notification-container notifTranslate hidden';
+//     }
+//     show() {
+//         /*const otherNotifs = document.querySelectorAll('.notification-container');
+//         if (otherNotifs.length > 1) {
+//             for (let i = 0; i < otherNotifs.length; i++) {
+//                 if (otherNotifs[i] === this.notif) continue;
+//                 for (let j = 0; j < otherNotifs[i].length; j++) {
+//                     otherNotifs[j].classList = 'notification-container';
+//                 }
+//                 otherNotifs[i].classList.add(`notif${i+1}`);
+//             }
+//         }*/
+//         const allNotifs = document.querySelectorAll('.notification-container');
+//         if(allNotifs.length > 1) {
+//             allNotifs.forEach(notifs => {
+//                 if (this.notif !== notifs) {
+//                     notifs.remove();
+//                 }
+//             });
+//         }
 
-        setTimeout(() => this.notif.classList.remove('hidden'), 10);
+//         setTimeout(() => this.notif.classList.remove('hidden'), 10);
 
-        if (this.data.autohide != false) {
-            setTimeout(() => this.hide(), 2000);
-        }
-    }
-    hide() {
-        this.notif.classList.add('hidden');
-        setTimeout(() => this.notif.remove(), 500);
-    }
-    setPosition(x, y) {
+//         if (this.data.autohide != false) {
+//             setTimeout(() => this.hide(), 2000);
+//         }
+//     }
+//     hide() {
+//         this.notif.classList.add('hidden');
+//         setTimeout(() => this.notif.remove(), 500);
+//     }
+//     setPosition(x, y) {
 
-    }
-}
+//     }
+// }
