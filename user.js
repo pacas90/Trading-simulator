@@ -570,12 +570,12 @@ export class Watchlist
     }
     comparePrices()
     {
-        let allStockInfo = JSON.parse(localStorage.getItem("globalStockList"));
-        let notifStocks = JSON.parse(localStorage.getItem("notificationStocks"));
+        let allStockInfo = JSON.parse(localStorage.getItem("globalStockList")) || [];
+        let notifStocks = JSON.parse(localStorage.getItem("notificationStocks")) || [];
 
         notifStocks.forEach(stock => {
             let matchedStock = allStockInfo.find(s => s.name == stock.name);
-            if(matchedStock.price <= stock.price)
+            if(matchedStock && matchedStock.price <= stock.price)
             {
                     sendNotif(`Price of ${stock.name} has reached ${matchedStock.price} USD`);
                     setTimeout(() => {}, 5000);
