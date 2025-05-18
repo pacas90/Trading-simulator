@@ -35,9 +35,11 @@ export class User
         this.orderList = JSON.parse(localStorage.getItem("orderList")) || [];
         this.optionList = JSON.parse(localStorage.getItem("optionList")) || [];
         this.shortUpdateTime = localStorage.getItem("shortOrderTime");
+        this.transactionSumToday = localStorage.getItem("transactionSumToday") || 0;
+        this.totalVal = 0;
         this.generateOptionObject();
         this.generateStockObject();
-        //this.generateDecimalList();
+        this.getChallenges();
     }
     // short orderiu pozicijai mokamas mokestis
     chargeDailyShortPremiums(){
@@ -52,7 +54,7 @@ export class User
                 icon: "close",
                 text: `<p>Being Charged Daily Premiums for held Short Positions!</p>`,
               });
-              notif.show();
+             // notif.show();
             for(let i = 0;i<this.orderList.length;i++){
                 if(this.orderList[i].orderType==orderType.SHORT){
                     const daysPassed = Math.floor((date - this.shortUpdateTime) / oneDay);
@@ -145,6 +147,7 @@ export class User
             // sukuriam nauja akcija portfolio jeigu jo nera
             this.stocklist.push(stock);
             this.stockAmounts.push(amount);
+            this.updateChallenge(6, 1);
         }
         else {
             // pridedam prie jau egzistuojancios akcijos portfolio
@@ -173,6 +176,9 @@ export class User
                 this.stocklist[stockIndex].price=globalStockList.findStockByName(this.stocklist[stockIndex].name).price;
             }
             else console.log("Invalid stock amount being removed | must be greater or equal to stock amount held in storage");
+            
+            if(this.stockAmounts[stockIndex] <= amount)
+                this.updateChallenge(6,-1);
         }
         this.removeNotHeldStocks();
         localStorage.setItem("stockList",JSON.stringify(this.stocklist));
@@ -345,7 +351,7 @@ export class User
         this.stocklist = JSON.parse(localStorage.getItem("stockList")) || [];
         this.stockAmounts = JSON.parse(localStorage.getItem("stockAmounts")) || [];
         let broker = new Broker();
-        let totalVal = 0;
+        //this.totalVal = 0;
         for (let i = 0; i < this.stocklist.length; i++) {
             
             if(this.stockAmounts[i]>0)
@@ -359,10 +365,11 @@ export class User
                 (this.stockAmounts[i] * broker.findStockByName(this.stocklist[i].name).price).toFixed(2)
             )
             
-            totalVal += +(this.stockAmounts[i] * broker.findStockByName(this.stocklist[i].name).price).toFixed(2);
+            this.totalVal += +(this.stockAmounts[i] * broker.findStockByName(this.stocklist[i].name).price).toFixed(2);
+            console.log(this.totalVal);
         }
-        const totalAccValue = document.querySelector('#total-account-value');
-        totalAccValue.innerHTML = `${totalVal.toFixed(2)} <span style='margin-left: 5px;
+        let totalAccValue = document.querySelector('#total-account-value');
+        totalAccValue.innerHTML = `${this.totalVal.toFixed(2)} <span style='margin-left: 5px;
     color: var(--text-accent)'>USD</span>`;
 
         const portfolioRows = document.querySelector('#portfolio-table > tbody')
@@ -473,7 +480,262 @@ export class User
         row.appendChild(buttonCell);
         row.classList.add('limit-orders-table-row');
         table.appendChild(row)
-    }    
+    }
+    generateDailyReport(dailyPriceChange)
+    {
+        let differenceList = []; // price diff for each stock in portfolio
+        let stocks = JSON.parse(localStorage.getItem("stockList")) || [];
+        stocks.forEach(stock => {
+            let hist = JSON.parse(localStorage.getItem(`${stock.name}_hist`));
+            let diff = hist[0].close - hist[1].close;
+            //console.log(diff);
+            let diffStock = { name: stock.name, difference: diff.toFixed(2) };
+            differenceList.push(diffStock); 
+        });
+
+        const maxDifference = Math.max(...differenceList.map(stock => stock.difference));
+        const maxDiffObj = differenceList.find(stock => stock.difference == maxDifference); // stock name and difference for max diff
+        const minDifference = Math.min(...differenceList.map(stock => stock.difference));
+        const minDiffObj = differenceList.find(stock => stock.difference == minDifference); // stock name and difference for min diff
+
+        const today = new Date();
+        const formattedDate = today.getFullYear+ '-' + today.getMonth + '-' + today.getDay; // date for today
+
+        const totalDiff = parseFloat(differenceList.reduce((sum, stock) => sum + stock.difference, 0)); // full difference for today
+        const totalPL = (this.balance + this.totalVal - 200).toFixed(2); // profit/loss since creation of account
+
+        
+        const elem = document.querySelector("#daily-info-dialog-data");
+        
+        let totalPLColored = "";
+        if (totalPL > 0) {
+            totalPLColored = `<span class="bought">+${totalPL} USD</span>`;
+        }
+        else {
+            totalPLColored = `<span class="sold">-${totalPL} USD</span>`;
+        }
+
+
+        let tableContent = "";
+        for (let i = 0; i < differenceList.length; i++) {
+            let coloredChange = "";
+            if (differenceList[i].difference > 0) {
+                coloredChange = `<span class="bought">+${differenceList[i].difference} USD</span>`;
+            }
+            else {
+                coloredChange = `<span class="sold">-${differenceList[i].difference} USD</span>`;
+            }
+            tableContent += `
+                <tr>
+                    <td>${differenceList[i].name}</td>
+                    <td>${coloredChange}</td>
+                </tr>`;
+        }
+
+        
+
+        let todayProfitLoss = "";
+        if (totalDiff > 0) {
+            todayProfitLoss = `
+                <span class="bought">+${totalDiff} USD</span>
+            `;
+        }
+        else {
+             todayProfitLoss = `
+                <span class="sold">-${totalDiff} USD</span>
+            `;
+        }
+
+        this.stocklist = JSON.parse(localStorage.getItem("stockList")) || [];
+        this.stockAmounts = JSON.parse(localStorage.getItem("stockAmounts")) || [];
+        let broker = new Broker();
+        let totalAccVal = 0;
+         for (let i = 0; i < this.stocklist.length; i++) {
+            totalAccVal += +(this.stockAmounts[i] * broker.findStockByName(this.stocklist[i].name).price).toFixed(2);
+        }
+        totalAccVal = totalAccVal.toFixed(2);
+
+        let maxDiffFixed;
+        let maxDiffName;
+
+        let minDiffFixed;
+        let minDiffName;
+
+        maxDiffFixed = maxDiffObj.difference;
+        maxDiffName = maxDiffObj.name;
+        minDiffFixed = minDiffObj.difference;
+        minDiffName = minDiffObj.name;
+
+        if(maxDifference <= 0)
+        {
+            maxDiffFixed = '-';
+            maxDiffName = '-';
+        }
+        if(minDifference >= 0)
+        {
+            minDiffFixed = '-';
+            minDiffName = '-';
+        }
+
+
+        elem.innerHTML = `
+            <div id="daily-info-container">
+                <div id="daily-info-biggest-profit">
+                    <p>Biggest profit</p>
+                    <p class="bought">+${maxDiffFixed} USD</p>
+                    <p class="stock-name">${maxDiffName}</p>
+                  
+                </div>
+                <div id="daily-info-biggest-loss">
+                    <p>Biggest loss</p>
+                    <p class="sold">-${minDiffFixed} USD</p>
+                    <p class="stock-name">${minDiffName}</p>
+
+                </div>
+                <div id="daily-info-stock-list">
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th>Name</th>
+                                <th>Change</th>
+                            </tr>
+                            ${tableContent}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <table id="daily-info-table2">
+                    <tbody>
+                        <tr>
+                            <td>Total account value</td>
+                            <td>${totalAccVal} USD</td>
+                        </tr>
+                        <tr>
+                            <td>Daily profit/loss</td>
+                            <td>${todayProfitLoss}</td>
+                        </tr>
+                        <tr>
+                            <td>Profit/loss since account creation</td>
+                            <td>${totalPLColored}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+    checkForLimitUpdate()
+    {
+        const today = new Date();
+        let lastUpdate = new Date(localStorage.getItem("lastHistoricalUpdateTime"))
+        const differenceInDays = Math.floor((today - lastUpdate) / (1000 * 3600 * 24))
+
+        if(lastUpdate != null && differenceInDays > 0)
+        {
+            localStorage.setItem("transactionSumToday", 0);
+        }
+    }
+    updateLimit(price)
+    {
+        let limitUsed = localStorage.getItem("transactionSumToday");
+        const dailyLimit = localStorage.getItem("dailyTradeLimit");
+        if(limitUsed + price > dailyLimit)
+            return false
+        else
+        {
+            limitUsed += price
+            localStorage.setItem("transactionSumToday", limitUsed);
+            return true;
+        }
+    }
+    getChallenges()
+    {
+        let ch = JSON.parse(localStorage.getItem("userChallenges")) || [];
+        if (ch.length == 0)
+        {
+            ch = [
+                new Challenge(0,"First Purchase", "Make your first purchase.",1),
+                new Challenge(1,"First Sale","Make your first sale", 1),
+                new Challenge(2,"Active Trader", "Make five trades", 5),
+                new Challenge(3,"Beginner Investor", "Achieve a portfolio value of 150 USD",150),
+                new Challenge(4,"Market Novice", "Achieve a portfolio value of 300 USD", 300),
+                new Challenge(5,"Professional Investor", "Achieve a portfolio value of 500 USD", 500),
+                new Challenge(6,"Stock Collector","Hold five different stocks",5)
+            ];
+            localStorage.setItem("userChallenges", JSON.stringify(ch));
+        }
+        this.challenges = ch;
+    }
+    updateChallenge(id, progress)
+    {
+        let ch = JSON.parse(localStorage.getItem("userChallenges")) || [];
+        let currentChallenge = ch[id];
+        if(!currentChallenge.completed)
+        {
+            currentChallenge.progress += progress;
+            if(currentChallenge.progress >= currentChallenge.target)
+            {
+                currentChallenge.progress = currentChallenge.target;
+                currentChallenge.completed = true;
+            }
+            ch[id] = currentChallenge;
+            localStorage.setItem("userChallenges", JSON.stringify(ch));
+        }
+    }
+    setUpdateChallenge(id,progress)
+    {
+        let ch = JSON.parse(localStorage.getItem("userChallenges")) || [];
+        let currentChallenge = ch[id];
+        if(!currentChallenge.completed)
+        {
+            currentChallenge.progress = progress;
+            if(currentChallenge.progress >= currentChallenge.target)
+            {
+                currentChallenge.progress = currentChallenge.target;
+                currentChallenge.completed = true;
+            }
+            ch[id] = currentChallenge;
+            localStorage.setItem("userChallenges", JSON.stringify(ch));
+        }
+    }
+    putChallengesToTable() {
+        
+        const container = document.querySelector("#challenges-container");
+        container.innerHTML = '';
+
+        const challenges = JSON.parse(localStorage.getItem("userChallenges"));
+
+        for (let i = 0; i < challenges.length; i++) {
+
+            let statusIcon = "";
+            if (challenges[i].completed == false) {
+                statusIcon = "";
+            }
+            else {
+                statusIcon = "check";
+            }
+
+            const item = document.createElement("div");
+            item.classList.add("challenge-item");
+            item.innerHTML = `
+                <div class="challenge-number">${challenges[i].id+1}</div>
+                <div class="challenge-main">
+                    <div class="challenge-name">
+                        ${challenges[i].name}       
+                    </div>
+                    <div class="challenge-description">
+                        ${challenges[i].description}
+                    </div>
+                    <div class="challenge-progress">
+                        <md-linear-progress value="${Math.min(challenges[i].progress / challenges[i].target, 1)}"></md-linear-progress>
+                    </div>
+                </div>
+                <div class="challenge-completed-container">
+                    <md-icon>${statusIcon}</md-icon>
+                </div>
+            `;
+            container.appendChild(item);
+        }
+    }
 }
 
 export class Watchlist
@@ -485,13 +747,6 @@ export class Watchlist
         {
             localStorage.setItem("watchedStocks", JSON.stringify(this.stocks));
         }
-        else
-        {
-            // this.stocks.forEach(stock =>{
-            //     this.addToTable(stock);
-            // })   
-        }
-        // this.updateButtonListener();
     }
     init() {
         this.stocks.forEach(stock =>{
@@ -736,8 +991,18 @@ export class Watchlist
 
     }
 
-    
-
+}
+export class Challenge
+{
+    constructor(id, name, description, target)
+    {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.target = target;
+        this.progress = 0;
+        this.completed = false;
+    }
 }
 
 

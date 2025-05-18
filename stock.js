@@ -308,6 +308,8 @@ export class Broker{
         if(currencyCount>0&&currencyCount<=this.user.getBalance()){
             this.user.removeBalance(currencyCount); // nuskaitomi pinigai
             const stock = this.findStockByName(name); // surandama akcija kuria perkam
+            this.user.updateChallenge(0, 1);
+            this.user.updateChallenge(2,1);
 
             const numOfSharesBought =currencyCount/stock.price; // kiek akciju pirksim
             this.user.addStock(stock,numOfSharesBought); // pridedam tiek akciju 
@@ -331,6 +333,8 @@ export class Broker{
             //console.log(stock.price);
             this.user.addBalance(stockCount*stock.price); // pridedami pinigai
             this.user.removeStock(stock,stockCount); // nuskaitomos akcijos
+            this.user.updateChallenge(1,1);
+            this.user.updateChallenge(2,1);
         }
         else {
             console.log("parduoti noriu "+stockCount+ " o yra "+stockAmount);

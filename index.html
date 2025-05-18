@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Rajdhani&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
@@ -39,6 +39,15 @@
                 <span class="material-symbols-outlined">add_to_queue</span>
                 <p>Watchlist</p>
             </md-text-button>
+            <md-text-button value="challenges" class="nav-bar-buttons">
+                <span class="material-symbols-outlined">swords</span>
+                <p>Challenges</p>
+            </md-text-button>
+            <md-text-button value="daily-info" class="nav-bar-buttons">
+                <span class="material-symbols-outlined">add_to_queue</span>
+                <p>Daily info</p>
+            </md-text-button>
+            
             <md-text-button value="help" class="nav-bar-buttons">
                 <span class="material-symbols-outlined">settings</span>
                 <p>Options</p>
@@ -94,6 +103,7 @@
                 </div> -->
 
                 <div id="portfolio-table-wrapper">
+                    <p>Your portfolio table</p>
                     <table id="portfolio-table">
                         <tbody>
                             <tr header="true">
@@ -143,6 +153,7 @@
             <!-- watchlist nav -->
             <div class="nav-content watchlist hidden">
                 <div id="watchlist-container">
+                    
                     <!-- <div class="watchlist-element-container">
                         <div class="watchlist-info">
                             <p class="stock-name">stock</p>
@@ -158,19 +169,63 @@
                 </div>
             </div>
 
-             <!-- wathlist nav end -->
+            <div class="nav-content challenges hidden">
+
+                <div id="challenges-container">
+                    <!-- <div class="challenge-item">
+                        <div class="challenge-number">
+                            
+                        </div>
+                        <div class="challenge-main">
+                            <div class="challenge-name">
+                                
+                            </div>
+                            <div class="challenge-description">
+                                
+                            </div>
+                            <div class="challenge-progress">
+
+                            </div>
+                        </div>
+                        <div class="challenge-completed-container">
+
+                        </div>
+                    </div> -->
+                </div>
+
+            </div>
+
+             
             </div>
             <div class="nav-content help hidden">
-                <div class="options-tabs">
-                     <label>
-                        Enable light mode 
-                        <md-checkbox checked id="light-mode-switch"></md-checkbox>
-                      </label> 
+                <div id="options-container">
+                    <md-list class="settings-list">
+                        <md-list-item>
+                            <div slot="headline">
+                                <label for="light-mode-switch">
+                                Enable light mode
+                                
+                                </label>
+                            </div>
+                            <div slot="end"><md-checkbox checked id="light-mode-switch"></md-checkbox></div>
+                        </md-list-item>
+                    </md-list>
 
+                    <md-divider></md-divider>
+
+                    <md-list class="settings-list">
+                        <md-list-item>
+                            <div slot="headline" style="width: 200px;">
+                                Set daily tradel limit
+                                <md-slider id="trade-limit-slider" ticks step="50" labeled min="50" max="1000" value="200"></md-slider>
+                            </div>
+                           <div slot="trailing-supporting-text" id="trade-limit-value"></div>
+                        </md-list-item>
+                        <md-list-item>
+                            
+                        </md-list-item>
+                    </md-list>
                 </div>
-                <!--<div class="options-tabs">
-                    <button>Reset</button>
-                </div>-->
             </div>
         </div>
         <div id="balance-container">
@@ -183,7 +238,18 @@
 
 
 
+        <md-dialog id="daily-info-dialog">
+            <div slot="headline">Your daily report!</div>
+            <md-icon slot="icon">workspace_premium</md-icon>
+            <form id="form" slot="content" method="dialog">
+                <div id="daily-info-dialog-data">
 
+                </div>
+            </form>
+              <div slot="actions">
+                <md-text-button form="form" value="goback" autofocus>Thanks</md-text-button>
+            </div>
+        </md-dialog>
 
 
 

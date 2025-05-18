@@ -1,5 +1,6 @@
 import { User } from "./user.js";
 import { Watchlist } from "./user.js";
+import { Challenge } from "./user.js";
 import { Broker } from "./stock.js";
 import { GlobalStockList } from "./stock.js";
 import { BuyDialog, RecentTransactions} from "./ui.js";
@@ -7,6 +8,7 @@ import { Order } from "./stock.js";
 import { orderType } from "./stock.js";
 import { Option } from "./stock.js";
 import { optionType } from "./stock.js";
+import { Notifications } from "./snackbar.js";
 const user = new User();
 const stockList = new GlobalStockList();
 const broker = new Broker();
@@ -14,6 +16,7 @@ const watchList = new Watchlist();
 
 
 stockList.loadStockInfo();
+user.checkForLimitUpdate();
 stockList.updateHistoricalData();
 
 stockList.addStocksFromList();
@@ -25,9 +28,12 @@ window.onload = () => user.realizeOptions();
 window.onload = () => broker.UpdateLimitOrders();
 window.onload = () => user.chargeDailyShortPremiums();
 
+
 //setInterval(() => this.fetchStockInfo(), 65000);
 watchList.comparePrices();
 setInterval(() => watchList.comparePrices(), 300000);
+
+
 //OPTIONS TESTAVIMAS - pradzia
 //user.addBalance(20);
 
@@ -40,11 +46,11 @@ setInterval(() => watchList.comparePrices(), 300000);
 //stockList.UpdateStockPrice("AAPL",145);
 //user.realizeOptions();
 //user.printUserOptionsToConsole();
-console.log(user.optionList);
+
 //OPTION TESTAVIMAS - pabaiga
 
 // pagr. navigacijos buttonai
-const navButtons = document.querySelectorAll('.nav-bar-buttons'); //navigacijos mygtukai
+const navButtons = document.querySelectorAll('.nav-bar-buttons:not([value="daily-info"])'); //navigacijos mygtukai
 const content = document.querySelectorAll(".nav-content"); // content'as skirtingu skyriu (home, buy/sell, portfolio..)
 //cia perjungia skyrius ant mygtuku paspaudimo
 navButtons.forEach(button => {
@@ -59,6 +65,8 @@ navButtons.forEach(button => {
         //watchList.comparePrices();
     });
 });
+
+
 
 
 // portfolio/stocks table header clickai kad sortintu
@@ -156,6 +164,37 @@ lightModeSwitch.addEventListener('input', () => {
     }
 });
 
+const dailyTradeLimitSlider = document.querySelector("#trade-limit-slider");
+const tradeLimitValueText = document.querySelector("#trade-limit-value");
+
+window.onload = () => {
+    if (localStorage.getItem("dailyTradeLimit") != null) {
+        if (localStorage.getItem("dailyTradeLimit") == "1000") {
+            dailyTradeLimitSlider.value = 1000;
+            tradeLimitValueText.textContent = "UNLIMITED";
+            dailyTradeLimitSlider.valueLabel = "INF";
+        }
+        else {
+            dailyTradeLimitSlider.value = localStorage.getItem("dailyTradeLimit");
+            tradeLimitValueText.textContent = dailyTradeLimitSlider.value;
+        }
+    }
+    tradeLimitValueText.textContent = dailyTradeLimitSlider.value;
+};
+
+dailyTradeLimitSlider.addEventListener('input', () => {
+    localStorage.setItem("dailyTradeLimit", dailyTradeLimitSlider.value);
+    tradeLimitValueText.textContent = dailyTradeLimitSlider.value;
+    if (dailyTradeLimitSlider.value == 1000) {
+        tradeLimitValueText.textContent = "UNLIMITED";
+        dailyTradeLimitSlider.valueLabel = "INF";
+    }
+    else {
+        dailyTradeLimitSlider.valueLabel = dailyTradeLimitSlider.value;
+    }
+});
+
+
 
 import { Curve } from './curve.js';
 
@@ -206,8 +245,21 @@ todaysChangePercentage.innerHTML = `(${changePercentage.toFixed(2)}%)`;
 todaysChangePercentage.style.color = changeColor;
 
 
-
-
+document.querySelector('.nav-bar-buttons[value="daily-info"]').addEventListener("click", () => {
+    if (localStorage.getItem("stockList") != '[]') {
+        console.log(localStorage.getItem("stockList"));
+        user.generateDailyReport(change);
+        document.querySelector("#daily-info-dialog").show();
+    }
+    else {
+        var notif = new Notifications({
+            icon: "priority_high",
+            text: `<p>You have no stocks.</p>`,
+        });
+        notif.show();
+    }
+});
+// window.onload = () => document.querySelector('.nav-bar-buttons[value="daily-info"]').click();
 
 
 //                  width; height;  curve color;       grid color;  area below curve colour;    container
@@ -226,39 +278,74 @@ const curveContainer = document.querySelector('#dashboard-graph-container > .cur
 var curve = new Curve(600,300, curveContainer);
 
 
-// pagrindinis grafikas, laiko pasirinkimas
-
-curve.drawCurve(
-    prices.slice(0, 30).map((price, index) => ({ x: 30 - index, y: Math.round(price) }))
-);
-
-const timeChips = document.querySelectorAll('#main-graph-time-chips > md-filter-chip');
-for (let i = 0; i < timeChips.length; i++) {
-    timeChips[i].addEventListener('click', () => {
-        for (let j = 0; j < timeChips.length; j++) {
-            timeChips[j].selected = false;
-        }
-        timeChips[i].selected = true;
-        let time = '';
-        if (timeChips[i].getAttribute('time') == '3 months') {
-            time = 90;
-        }
-        else if (timeChips[i].getAttribute('time') == '30 days') {
-            time = 30;
-        }
-        else if (timeChips[i].getAttribute('time') == '7 days') {
-            time = 7;
-        }
-        curve.clear();
-        curve.drawCurve(
-            prices.slice(0, time).map((price, index) => ({ x: time - index, y: Math.round(price) }))
-        );
-        
-    });
+function generatePoints(n) {
+  if (n < 2) throw new Error("n must be at least 2");
+  const points = [];
+  points.push({ x: 1, y: 0 });
+  for (let i = 2; i < n; i++) {
+    points.push({ x: i, y: 1 });
+  }
+  points.push({ x: n, y: 2 });
+  return points;
 }
 
 
+// musu famous kreives 80+ errors bug fix --------------------------
+const stocksLS = JSON.parse(localStorage.getItem("stockList"));
+if (!stocksLS || stocksLS == '') {
+    // curve.drawCurve([
+    //     {x: 1, y: 1},
+    //     {x: 2, y: 0},
+    //     {x: 3, y: 0},
+    //     {x: 4, y: 1}
+    // ]);
+    const points = 
+    curve.drawCurve(
+       generatePoints(1400)
+    );
+} 
+else {
+    curve.drawCurve(
+        prices.slice(0, 30).map((price, index) => ({ x: 30 - index, y: Math.round(price) }))
+    );
+    // pagrindinis grafikas, laiko pasirinkimas
+    const timeChips = document.querySelectorAll('#main-graph-time-chips > md-filter-chip');
+    for (let i = 0; i < timeChips.length; i++) {
+        timeChips[i].addEventListener('click', () => {
+            for (let j = 0; j < timeChips.length; j++) {
+                timeChips[j].selected = false;
+            }
+            timeChips[i].selected = true;
+            let time = '';
+            if (timeChips[i].getAttribute('time') == '3 months') {
+                time = 90;
+            }
+            else if (timeChips[i].getAttribute('time') == '30 days') {
+                time = 30;
+            }
+            else if (timeChips[i].getAttribute('time') == '7 days') {
+                time = 7;
+            }
+            curve.clear();
+            curve.drawCurve(
+                prices.slice(0, time).map((price, index) => ({ x: time - index, y: Math.round(price) }))
+            );
+            
+        });
+    }
+
+
+}
+
+
+// watchList.findIndex("AAPL") == -1 ? watchList.Add("AAPL") : null;
 
 
 
-
+document.querySelector('.nav-bar-buttons[value="challenges"]').addEventListener("click", () => {
+    user.setUpdateChallenge(3, user.totalVal);
+    user.setUpdateChallenge(4, user.totalVal);
+    user.setUpdateChallenge(5, user.totalVal);
+    console.log(user.totalVal);
+    user.putChallengesToTable();
+});

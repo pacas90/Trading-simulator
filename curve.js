@@ -81,6 +81,8 @@ export class Curve {
 
     drawCurve(points) {
 
+        //console.log(points);
+
         const children = Array.from(this.svg.children);
         children.forEach(child => {
             if (child !== this.trackingDot) {
@@ -102,7 +104,9 @@ export class Curve {
         const xMax = this.points.length - 1;
         const yMin = Math.min(...this.points.map(d => d.y));
         const yMax = Math.max(...this.points.map(d => d.y));
-    
+
+
+
         // Index-based scaling
         const scaleX = x => {
             if (xMax === 0) return this.margin.left;
@@ -126,7 +130,7 @@ export class Curve {
             line.setAttribute("stroke-width", "1");
             this.svg.appendChild(line);
         }
-        this.drawBackground(scaleX, scaleY);
+        if (this.points.length > 1) this.drawBackground(scaleX, scaleY);
     }
     drawXAxis(scaleX) {
         // X-axis line
